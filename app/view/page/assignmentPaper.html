@@ -1,0 +1,499 @@
+{% extends 'template/jhTemplateV4.html'%}
+
+{% block vueTemplate %}
+
+<script type="text/html" id="app-template">
+  <div>
+    <v-app mobile-breakpoint="sm">
+      <jh-menu />
+      <v-main class="mt-15">
+        <!-- 头部内容 >>>>>>>>>>>>> -->
+        <v-row class="px-8">
+          <v-col cols="12" xs="12" sm="12" md="6" xl="4">
+            <div class="pt-3 text-h7 font-weight-bold">
+              {{ assignmentTitle }}
+              <span>
+               第 {{ assignmentRetryNumber + 1 }}次做题
+              </span>
+              <span v-if="isAssignmentSubmit">
+                {{ assignmentResult }}
+              </span>
+              <v-btn color="error" small @click="doUiAction('goto_assignmentList')">返回</v-btn>
+              <br>
+              <span style="font-size: 14px; color: #000;">
+                {{ assignmentStatusDesc }}
+              </span>
+            </div>
+            <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+          </v-col>
+          <!--pc端的搜索条件表单 >>>>>>>> -->
+          <v-col cols="12" xs="12" sm="12" md="6" xl="8" v-if="!isAssignmentLoading" >
+            <v-row class="jh-backend-form-container justify-end ma-0 py-1 pb-xs-2">
+              <v-spacer v-if="!isMobile"></v-spacer>
+              <v-col cols="6" sm="6" md="6" xl="3" :class="{'pr-0': !isMobile}" :style="{'max-width': !isMobile ? '250px' : 'unset'}">
+                <v-btn v-if="!isAssignmentSubmit" elevation="0"
+                  color="success" dark
+                  @click.stop="doUiAction('saveUserAssignment')"
+                  :loading="isAssignmentLoading">
+                  保存
+                </v-btn>
+                <v-btn v-if="!isAssignmentSubmit" elevation="0"
+                  color="primary" dark
+                  @click.stop="doUiAction('submitUserAssignment', {submit: 'submit'})"
+                  :loading="isAssignmentLoading">
+                  提交
+                </v-btn>
+                <v-radio-group v-if="isAssignmentSubmit" v-model="answerType" row @change="doUiAction('toggleAnswerDisplay')">
+                  <v-radio label="正确答案" color="error" value="正确答案"></v-radio>
+                  <v-radio label="我的答案" color="error" value="我的答案"></v-radio>
+                </v-radio-group>
+                <v-btn v-if="isAssignmentSubmit" elevation="0"
+                  color="primary" dark @click.stop="doUiAction('redoUserAssignment')"
+                  :loading="isAssignmentLoading">
+                  重做
+                </v-btn>
+            </v-row>
+          </v-col>
+          <!-- <<<<<<<< pc端的搜索条件表单 -->
+        </v-row>
+        <!-- <<<<<<<<<<<<< 头部内容 -->
+
+        <div class="jh-page-body-container px-8">
+          <!-- 页面内容 >>>>>>>>>>>>> -->
+            <div v-if="allowUserStart" :style="{'max-height': isMobile ? 'calc(100vh - 210px)' : 'calc(100vh - 170px)' }" style="overflow: auto;">
+              <!-- 考试题目列表 -->
+              <v-card v-for="(formItem, index) in assignmentAnswer" :key="index" class="ma-2 formItem-item-body" elevation="4" dense>
+                <v-list-item :class="{'pa-0': formItem.component.type === 'markdown'}">
+                  <v-list-item-content>
+                    <exam-form-item 
+                      :form-item="formItem" 
+                      :index="index" 
+                      v-if="formItem.component.type === 'questionGroup'" 
+                      :is-submit="isAssignmentSubmit" 
+                      :is-review="isAssignmentReview" 
+                      :exam-review="assignmentReview"
+                    >
+                      <template slot="questionGroup">
+                        <v-card v-for="(item, i) in formItem.component.itemList" :key="i" class="mt-2" dense outlined>
+                          <v-list-item :class="{'pa-0': formItem.component.type === 'markdown'}">
+                            <v-list-item-content>
+                              <form-item :form-item="item" :index="i"></form-item>
+                            </v-list-item-content>
+                          </v-list-item>
+                        </v-card>
+                      </template>
+                    </exam-form-item>
+                    <exam-form-item 
+                      v-else
+                      :form-item="formItem" 
+                      :index="index" 
+                      :is-submit="isAssignmentSubmit" 
+                      :is-review="isAssignmentReview" 
+                      :exam-review="assignmentReview">
+                    </exam-form-item>
+                  </v-list-item-content>
+                </v-list-item>
+              </v-card>
+              <v-card class="ma-2 formItem-item-body" elevation="4" dense 
+                v-if="isAssignmentReview && assignmentReview && assignmentReview.overallComment">
+                <v-list-item class="ma-2">
+                  <v-list-item-content>
+                    <v-row class="answer-tip-box mt-3">              
+                      <v-col cols="12"  class="answer-tip-col">
+                        <span class="inpubLabel">整体评语</span>
+                        <v-textarea hide-details class="student-remark" placeholder="教师评语" v-model="assignmentReview.overallComment" filled single-line :rows="2" auto-grow/>
+                      </v-col>
+                    </v-row>
+                  </v-list-item-content>
+                </v-list-item>       
+              </v-card>      
+            </div>
+          <!-- <<<<<<<<<<<<< 页面内容 -->
+        </div>
+      </v-main>
+    </v-app>
+
+    <jh-toast />
+    <jh-mask />
+    <jh-confirm-dialog />
+
+  </div>
+</script>
+
+<div id="app">
+</div>
+
+{% endblock %}
+
+{% block vueScript %}
+
+<!-- 加载页面组件 >>>>>>>>>>>>> -->
+{% include 'component/assignmentFormItem.html' %}
+<!-- <<<<<<<<<<<<< 加载页面组件 -->
+
+<script type="module">
+  new Vue({
+    el: '#app',
+    template: '#app-template',
+    vueComponent: 'page',
+    vuetify: new Vuetify(),
+    data: {
+      // 作业检索信息
+      articleId: '',
+      courseBatchId: '',
+      classId: '',
+      userId: '',
+      assignmentId: '',
+      albumId: '',
+
+      // 页面控制参数
+      allowUserStart: true,
+      isAssignmentLoading: true,
+      showStandardAnswer: false,
+      answerType: '我的答案',
+      
+      // 页面常数:
+      assignmentOptionKey: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
+
+      // 作业基本信息
+      assignmentTitle: '题目加载中……',
+      assignmentScore: 0,
+      assignmentFullMarks: 0,
+      assignmentRetryNumber: 0,
+      assignmentCountDown: '',
+
+      // 作业状态信息
+      assignmentStatusDesc: '',
+      lastSaveTime: '',
+      autoSaveInterval: 30000,
+      autoSaveTimeOut: null,
+      autoSaveEnabled: true,
+
+      // 作业内容
+      userAssignment: {},
+      assignmentAnswer: [],
+      assignmentUserAnswer: [],
+      assignmentStandardAnswer: [],
+      assignmentReview: {},
+
+      actionDataForSave: {},
+      actionDataForSubmit: {},
+    },
+    computed: {
+      isAssignmentSubmit () {
+        if (this.isAssignmentLoading) {
+          return false;
+        }
+        return this.userAssignment.assignmentSubmitStatus === 'submit' || this.userAssignment.assignmentSubmitStatus === 'publish';
+      },
+      isAssignmentReview () {
+        if (this.isAssignmentLoading) {
+          return false;
+        }
+        return this.userAssignment.assignmentReviewStatus === 'publish';
+      },
+      isMobile() {
+        return window.innerWidth < 600;
+      },
+      assignmentResult () { 
+        const scoreText = (this.assignmentScore || this.assignmentScore == 0) ? this.assignmentScore : '待批改';
+        const fullMarkText = (this.assignmentFullMarks || this.assignmentFullMarks == 0) ? this.assignmentFullMarks : '未设置';
+        return `【得分：${scoreText} | 满分：${fullMarkText}】`;
+      },
+    },
+    watch: {},
+    async created() {
+      const urlParams = new URLSearchParams(location.search);
+      const articleId = urlParams.get('articleId');
+      if (articleId) {
+        this.articleId = articleId;
+      } else {
+        setTimeout(() => {
+          window.vtoast.fail('请从"作业列表"点击"考作业"进入');
+        }, 1000);
+        return;
+      }
+      await this.doUiAction('getUserAssignment');
+    },
+    methods: {
+      async doUiAction(uiActionId, uiActionData) {
+        switch(uiActionId) {
+          case 'getUserAssignment':
+            await this.getUserAssignment();
+            await this.setAssignmentConstants();
+            if (!this.isAssignmentSubmit && !this.isAssignmentLoading) {
+              this.startAutoSaveTimer();
+            }
+            this.isAssignmentLoading = false;
+            this.allowUserStart = true;
+            break;
+          case 'saveUserAssignment':
+            if (!this.isAssignmentSubmit) {
+              clearTimeout(this.autoSaveTimeOut);
+              this.lastSaveTime = dayjs().format();
+              await this.packUserAnswerForSave();
+              await this.saveUserAssignment();
+              this.assignmentStatusDesc = `上次保存时间：${dayjs(this.lastSaveTime).format('YYYY年MM月DD日HH:mm:ss')}`;
+              this.showStandardAnswer = false;
+              this.startAutoSaveTimer();
+            }
+            break;
+          case 'submitUserAssignment':
+            if (!this.isAssignmentSubmit) {
+              await this.confirmSubmitUserAssignment();
+              clearTimeout(this.autoSaveTimeOut);
+              this.isAssignmentLoading = true;
+              await this.packUserAnswerForSubmit();
+              await this.submitUserAssignment();
+              //this.currentAssignmentStatus = 'submit';
+              await this.getUserAssignment();
+              await this.setAssignmentConstants();
+              this.isAssignmentLoading = false;
+            }
+            break;
+          case 'redoUserAssignment':            
+            if (this.isAssignmentSubmit) {
+              await this.confirmRedoUserAssignment();
+              this.isAssignmentLoading = true;
+              await this.packUserAnswerForRedo();
+              await this.redoUserAssignment();
+              //this.currentAssignmentStatus = 'redo';
+              this.showStandardAnswer = false;
+              await this.getUserAssignment();
+              await this.setAssignmentConstants();
+              if (!this.isAssignmentSubmit) {
+                this.startAutoSaveTimer();
+              }
+              this.isAssignmentLoading = false;
+              this.allowUserStart = true;
+            }
+            break;
+          case 'toggleAnswerDisplay':
+          if (!this.isAssignmentSubmit) {
+              throw new Error('作业还没提交，不能切换答案的显示！');
+            } else {
+              if (this.answerType == '正确答案') {
+                this.assignmentStatusDesc = '已提交 | 正在查看正确答案';
+                this.assignmentAnswer = this.assignmentStandardAnswer;
+                this.showStandardAnswer = true;
+              } else {
+                this.assignmentStatusDesc = '已提交';
+                this.assignmentAnswer = this.assignmentUserAnswer;
+                this.showStandardAnswer = false;
+              }
+            }
+            break;
+          case 'goto_assignmentList':
+            await this.gotoAssignmentList();
+            break;
+        default:
+          console.error("[doUiAction] uiActionId not find", { uiActionId });
+          break;
+        }
+      },
+      async insertUserAssignment() {
+        let actionData = { articleId: this.articleId };
+        
+        const packageData = {
+          data: {
+            appData: {
+              pageId: 'assignmentPaper',
+              actionId: 'insertUserAssignment',
+              actionData: actionData
+            }
+          }
+        }
+        //console.log('[insertUserAssignment] packageData: ', packageData);
+        const result = await window.jianghuAxios(packageData);
+        //console.log('[insertUserAssignment]result: ', result);
+        return result.data.appData.resultData.assignmentId;
+      },
+      async getUserAssignment() {
+        if (!this.assignmentId) {
+          this.assignmentId = await this.insertUserAssignment();
+        }
+        const packageData = {
+          data: {
+            appData: {
+              pageId: 'assignmentPaper',
+              actionId: 'getUserAssignment',
+              actionData: {},
+              where: {
+                assignmentId: this.assignmentId
+              }
+            }
+          }
+        }
+        //console.log('[getUserAssignment] packageData: ', packageData);
+        const result = await window.jianghuAxios(packageData);
+        //console.log('[getUserAssignment]result: ', result);
+        this.userAssignment = result.data.appData.resultData.rows[0];
+        // this.userAssignment = await this.demoDataHandler.getUserAssignment(this.currentAssignmentStatus);
+        // console.log('[getUserAssignment] this.currentAssignmentStatus: ', this.currentAssignmentStatus);
+        // console.log('[getUserAssignment] this.userAssignment: ', this.userAssignment);
+      },
+      async setAssignmentConstants() {
+        this.assignmentCountDown = '';
+
+        if (this.userAssignment.assignmentSubmitStatus == 'new') {
+          this.assignmentStatusDesc = '答题中'
+          this.startAutoSaveTimer();
+        } else if (this.userAssignment.assignmentSubmitStatus == 'save') {
+          this.assignmentStatusDesc = `上次保存时间：${dayjs(this.userAssignment.assignmentSubmitAt).format('YYYY年MM月DD日HH:mm:ss')}`;
+          this.startAutoSaveTimer();
+        } else {
+          this.assignmentStatusDesc = '已提交';          
+          clearTimeout(this.autoSaveTimeOut);
+        }
+
+        this.assignmentTitle = (this.userAssignment.articleTitle) ? this.userAssignment.articleTitle : '无题';
+        this.assignmentScore = this.userAssignment.assignmentScore;
+        this.assignmentFullMarks = this.userAssignment.assignmentFullMarks;
+        this.lastSaveTime = this.userAssignment.assignmentSubmitAt;
+        this.assignmentRetryNumber = this.userAssignment.assignmentRetryNumber;
+
+        this.assignmentUserAnswer = this.setAssignmentUserAnswerForTemplate();
+        this.assignmentStandardAnswer = this.setAssignmentStandardAnswerForTemplate();
+        this.assignmentReview = this.setAssignmentReviewForTemplate();
+
+        if (this.showStandardAnswer) {
+          this.assignmentAnswer = this.assignmentStandardAnswer;
+          this.assignmentStatusDesc += ' | 正在查看正确答案';
+        } else {
+          this.assignmentAnswer = this.assignmentUserAnswer;
+        }
+      },
+      
+      setAssignmentUserAnswerForTemplate() {
+        return JSON.parse(this.userAssignment.assignmentUserAnswer);
+      },
+      setAssignmentStandardAnswerForTemplate() {
+        let standardAnswer = [];
+        if (this.userAssignment.assignmentStandardAnswer) {
+          standardAnswer = JSON.parse(this.userAssignment.assignmentStandardAnswer);
+          standardAnswer = standardAnswer.map(question => {
+            question.user = {
+              "file": {},
+              "answer": question.component.answer,
+              "remark": ""
+            };
+            return question;
+          });
+        }
+        return standardAnswer;
+      },
+      setAssignmentReviewForTemplate() {
+        let review = {
+          overallComment: '',
+        };
+        if (this.userAssignment.assignmentReview) {
+          const assignmentReview = JSON.parse(this.userAssignment.assignmentReview);
+          review = { ... review, ... assignmentReview };
+        } else {
+          this.assignmentStandardAnswer.forEach(question => {
+            review[question.id] = {
+              "score": "",
+              "comment": "",
+            };
+          });
+        }
+        return review;
+        // return (this.userAssignment.assignmentReview) ? JSON.parse(this.userAssignment.assignmentReview) : {};
+      },
+      startAutoSaveTimer() {
+        if (this.autoSaveEnabled) {
+          console.log('timer started');
+          this.autoSaveTimeOut = setTimeout(this.autoSaveUserAssignment, this.autoSaveInterval);
+        }
+      },
+      async autoSaveUserAssignment() {
+        console.log('[autoSaveUserAssignment]');
+        await this.doUiAction('saveUserAssignment');
+      },
+      async packUserAnswerForSave() {
+        this.actionDataForSave = { 
+          assignmentSubmitStatus: 'save',
+          assignmentSubmitAt: this.lastSaveTime,
+          assignmentUserAnswer: JSON.stringify(this.assignmentAnswer),
+        }
+
+        //console.log('[packUserAnswerForSave] this.actionDataForSave: ', this.actionDataForSave);
+      },
+      async saveUserAssignment() {
+        //console.log('[saveUserAssignment]: ', dayjs().format());
+        const packageData = {
+          data: {
+            appData: {
+              pageId: 'assignmentPaper',
+              actionId: 'saveUserAssignment',
+              actionData: this.actionDataForSave,
+              where: { assignmentId: this.assignmentId },
+            }
+          }
+        }
+        //console.log('[saveUserAssignment] packageData: ', packageData);
+        const result = await window.jianghuAxios(packageData);
+        //console.log('[saveUserAssignment]result: ', result);
+      },
+      async confirmSubmitUserAssignment() {
+        if (await window.confirmDialog({ title: "提交", content: "提交以后作业将无法修改。确定提交作业吗？" }) === false) {
+          throw new Error("[confirmSubmitUserAssignment] 否");
+        }
+      },
+      async packUserAnswerForSubmit() {
+        this.actionDataForSubmit = { 
+          assignmentSubmitStatus: 'submit',
+          assignmentSubmitAt: dayjs().format(),
+          assignmentUserAnswer: JSON.stringify(this.assignmentAnswer),
+        }
+        //console.log('[packUserAnswerForSubmit] this.actionDataForSubmit: ', this.actionDataForSubmit);
+      },
+      async submitUserAssignment() {
+        const packageData = {
+          data: {
+            appData: {
+              pageId: 'assignmentPaper',
+              actionId: 'submitUserAssignment',
+              actionData: this.actionDataForSubmit,
+              where: { assignmentId: this.assignmentId },
+            }
+          }
+        }
+        //console.log('[submitUserAssignment] packageData: ', packageData);
+        const result = await window.jianghuAxios(packageData);
+        //console.log('[submitUserAssignment] result: ', result);
+      },
+      async confirmRedoUserAssignment() {
+        if (await window.confirmDialog({ title: "重做", content: "之前的答案和批改将被清空。确定重做作业吗？" }) === false) {
+          throw new Error("[confirmRedoUserAssignment] 否");
+        }
+      },
+      async packUserAnswerForRedo() {
+        // nothing to do
+      },
+      async redoUserAssignment() {
+        const packageData = {
+          data: {
+            appData: {
+              pageId: 'assignmentPaper',
+              actionId: 'redoUserAssignment',
+              actionData: {},
+              where: { assignmentId: this.assignmentId },
+            }
+          }
+        }
+        //console.log('[redoUserAssignment] packageData: ', packageData);
+        const result = await window.jianghuAxios(packageData);
+        //console.log('[redoUserAssignment] result: ', result);
+      },
+      async gotoAssignmentList() {
+        //window.location.href = `/<$ ctx.app.config.appId $>/page/courseArticleList`;
+        history.go(-1);
+      }
+    }
+  })
+</script>
+
+<style scoped>
+</style>
+{% endblock %}

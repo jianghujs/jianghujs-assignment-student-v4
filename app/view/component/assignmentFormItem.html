@@ -1,0 +1,189 @@
+<template id="exam-form-item">
+  <div>
+    <template v-if="formItem.component.type === 'displayText'">
+      <v-list-item-title class="formItem-title">{{ index+1 }}、 {{ formItem.component.statement }}</v-list-item-title>
+    </template>
+    <template v-else-if="formItem.component.type === 'singleSelect'">
+      <v-list-item-title class="formItem-title">{{ index+1 }}、 {{ formItem.component.statement }}<span v-if="formItem.component.score">（{{ formItem.component.score }}分）</span></v-list-item-title>
+      <div v-if="formItem.component.markdownContent" ref="assignmentMarkdownContent" class="assignmentMarkdownContent markdown-body" :data-content="formItem.component.markdownContent"></div>
+      <v-radio-group v-model="formItem.user.answer" hide-details>
+        <v-radio color="#666" @change="answerChange" :readonly="isSubmit || isReview" v-for="(option, optionIndex) in formItem.component.selectOptionList" :key="optionIndex"  :label="examOptionKey[optionIndex] + ': ' + option" :value="option"></v-radio>
+      </v-radio-group>
+    </template>
+    <template v-else-if="formItem.component.type === 'multipleSelect'">
+      <v-list-item-title class="formItem-title">{{ index+1 }}、 {{ formItem.component.statement }}<span v-if="formItem.component.score">（{{ formItem.component.score }}分）</span></v-list-item-title>
+      <div v-if="formItem.component.markdownContent" ref="assignmentMarkdownContent" class="assignmentMarkdownContent markdown-body" :data-content="formItem.component.markdownContent"></div>
+      <div v-for="(option, optionIndex) in formItem.component.selectOptionList" :key="optionIndex">
+        <div style="display: inline-block">
+          <v-checkbox :readonly="isSubmit || isReview" style="margin-top: 0px;" @change="answerChange" v-model="formItem.user.answer" :label="examOptionKey[optionIndex] + ': ' + option" hide-details color="#666" :value="option"></v-checkbox>
+        </div>
+      </div>
+    </template>
+    <template v-else-if="formItem.component.type === 'fillBlank'">
+      <v-list-item-title class="mb-3" style="white-space: normal;">
+        {{ index+1 }}、 
+        <template v-for="(blank, blankIndex) in formItem.component.statement" :key="blankIndex">
+          <v-text-field class="fill-blank fill-blank-input" v-if="blank.type === 'input'" :readonly="isSubmit || isReview" dense hide-details filled v-model="formItem.user.answer[blank.id]"></v-text-field>
+          <span v-else>{{ blank.value }}</span>
+        </template>
+        <span v-if="formItem.component.score">（{{ formItem.component.score }}分）</span>
+      </v-list-item-title>
+      <div v-if="formItem.component.markdownContent" ref="assignmentMarkdownContent" class="assignmentMarkdownContent markdown-body" :data-content="formItem.component.markdownContent"></div>
+    </template>
+    <template v-else-if="formItem.component.type === 'questionGroup'">
+      <v-list-item-title class="formItem-title">{{ index + 1 }}、 {{ formItem.component.statement }}</v-list-item-title>
+      <div v-if="formItem.component.markdownContent" ref="assignmentMarkdownContent" class="assignmentMarkdownContent markdown-body" :data-content="formItem.component.markdownContent"></div>
+      <slot name="questionGroup"></slot>
+    </template>
+    <template v-else-if="['textarea', 'questionAnswer', 'markdown'].includes(formItem.component.type)">
+      <v-list-item-title class="formItem-title mb-3" :class="{'px-4': formItem.component.type === 'markdown'}">
+        {{ index+1 }}、 {{ formItem.component.statement }}<span v-if="formItem.component.score">（{{ formItem.component.score }}分）</span>
+      </v-list-item-title>
+      <div v-if="formItem.component.markdownContent" ref="assignmentMarkdownContent" class="assignmentMarkdownContent markdown-body" :data-content="formItem.component.markdownContent"></div>
+      <v-row>
+        <v-col v-if="formItem.component.type === 'markdown'" cols="12"  class="answer-tip-col"
+          :style="{height: isSubmit ? 'auto': '400px'}">
+          <md2html v-if="isSubmit" :article-content="formItem.user.answer"></md2html>
+          <div v-else class="editorMdContainer" :id="'editorMdContainer-'+index" style="position: relative;">
+            <textarea style="display:none;">{{formItem.component.answer}}</textarea>
+          </div>
+        </v-col>
+        <v-col v-else cols="12"  class="answer-tip-col">
+          <v-textarea
+            :readonly="isSubmit || isReview" placeholder="请输入答案" v-model="formItem.user.answer"
+            hide-details
+            class="cus-v-input mb-1"
+            dense
+            filled
+            @blur="answerChange"
+            single-line
+            color="success"
+            auto-grow :rows="4"
+            ></v-textarea>
+        </v-col>
+      </v-row>
+    </template>
+
+    
+    <v-row class="answer-tip-box mt-3" v-if="isSubmit && examReview && formItem.component.type !== 'displayText'">
+      <v-col cols="12"  class="answer-tip-col" v-if="examReview[formItem.id].score || examReview[formItem.id].score === 0">
+        <span class="cus-v-input mr-2"> 【我的答案】：</span>
+        <v-icon v-if="examReview[formItem.id].score != '0'" small color="green" aria-hidden="false">
+          mdi-check-circle
+        </v-icon>
+        <v-icon v-else color="red" aria-hidden="false" small>
+          mdi-close-circle
+        </v-icon>
+      </v-col>
+      <v-col cols="12"  class="answer-tip-col" v-if="examReview[formItem.id].score || examReview[formItem.id].score === 0">
+        <span class="cus-v-input mr-2"> 【我的得分】：{{examReview[formItem.id].score}}</span>
+      </v-col>
+      <!-- <v-col cols="12"  class="answer-tip-col" v-if="examReview[formItem.id].score || examReview[formItem.id].score === 0">
+        <span class="cus-v-input mr-2"> 【本题满分】：{{examReview[formItem.id].score}}</span>
+      </v-col> -->
+      <!-- <v-col cols="12"  class="answer-tip-col" v-if="examReview[formItem.id].score || examReview[formItem.id].score === 0">
+        <span class="cus-v-input mr-2"> 【正确答案】： </span>
+        <span class="px-3 py-1" style="background-color: #f5f8fa; border: 1px solid #e2e4e6" v-html="examReview[formItem.id].answerString">
+        </span>        
+      </v-col> -->
+      <!-- <v-col cols="12"  class="answer-tip-col" v-if="examReview[formItem.id].comment">
+        <span class="cus-v-input mr-2"> 【教师评语】：<span style="color: rgb(196, 0, 0)">{{examReview[formItem.id].comment}}</span></span>
+      </v-col> -->
+      <v-col cols="12"  class="answer-tip-col" v-if="isSubmit && formItem.component.explanation">
+        <span class="inputLabel">题目解析</span>
+        <v-textarea hide-details class="student-remark" placeholder="题目解析" v-model="formItem.component.explanation" filled single-line :rows="2" auto-grow/>
+      </v-col>
+      <v-col cols="12"  class="answer-tip-col" v-if="examReview[formItem.id].comment">
+        <span class="inputLabel">教师评语</span>
+        <v-textarea hide-details class="student-remark" placeholder="教师评语" v-model="examReview[formItem.id].comment" filled single-line :rows="2" auto-grow/>
+      </v-col>
+      <!-- <v-col cols="12"  class="answer-tip-col" v-if="isReview">
+        <v-textarea hide-details class="student-remark" placeholder="学生备注" v-model="formItem.user.remark" filled single-line :rows="2" auto-grow/>
+      </v-col> -->
+    </v-row>
+  </div>
+</template>
+<script>
+  Vue.component("exam-form-item", {
+    template: '#exam-form-item',
+    vuetify: new Vuetify(),
+    name: 'exam-form-item',
+    props: [ 'formItem', 'index', 'isSubmit', 'isReview', 'examReview'],
+    data: () => {
+      return {
+        examOptionKey: [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K' ],
+      }
+    },
+    computed: {},
+    destroyed() {},
+    watch: {},
+    async created() {
+      this.markdownToHtml();
+    },
+    methods: {
+      answerChange() {
+      },
+      markdownToHtml() {
+      }
+
+    },
+  })
+</script>
+
+<style scoped>
+.formItem-title {
+  white-space: pre-line !important;
+}
+.answer-tip-col {
+    padding: 3px 15px;
+}
+.answer-tip-box {
+    padding: 10px 0;
+}
+.editorMdContainer .editormd-mask {
+  position: absolute!important;
+  background-color: #000!important;
+  left: 0!important;
+  top: 0!important;
+  bottom: 0!important;
+  right: 0!important;
+}
+.editorMdContainer .editormd-menu {
+  padding-left: 10px!important;
+}
+.editorMdContainer .editormd-dialog {
+  position: absolute!important;
+  left: 50%!important;
+  top: 50px!important;
+  transform: translateX(-50%)!important;
+  width: 340px!important;
+}
+.editorMdContainer .editormd-dialog .editormd-dialog-header {
+  padding: 10px!important;
+}
+.editorMdContainer .editormd-dialog .editormd-dialog-container {
+  padding: 15px!important;
+}
+.editorMdContainer .editormd-form input[type=text] {
+  width: calc(100% - 80px)!important;
+}
+.student-remark textarea {
+  color: rgb(0, 172, 37) !important;
+}
+
+.fill-blank {
+  display: inline-block;
+  
+}
+.fill-blank-input {
+  border-bottom: 2px solid gray;
+  margin-left: 5px !important;
+  margin-right: 5px !important;
+  width: 100px;
+}
+.fill-blank-input .v-input__slot {
+  min-height: 30px !important;
+  padding-left: 5px !important;
+  padding-right: 5px !important;
+}
+</style>
