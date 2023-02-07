@@ -1,4 +1,4 @@
-<template id="exam-form-item">
+<template id="assignment-form-item">
   <div>
     <!-- 纯标题 -->
     <template v-if="formItem.component.type === 'displayText'">
@@ -129,10 +129,10 @@
   </div>
 </template>
 <script>
-  Vue.component("exam-form-item", {
-    template: '#exam-form-item',
+  Vue.component("assignment-form-item", {
+    template: '#assignment-form-item',
     vuetify: new Vuetify(),
-    name: 'exam-form-item',
+    name: 'assignment-form-item',
     props: ['formItem', 'index', 'isSubmit', 'isReview', 'examReview'],
     data: () => {
       return {

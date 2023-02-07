@@ -65,7 +65,7 @@
               <v-card v-for="(formItem, index) in assignmentAnswer" :key="index" class="ma-2 formItem-item-body" elevation="4" dense>
                 <v-list-item :class="{'pa-0': formItem.component.type === 'markdown'}">
                   <v-list-item-content>
-                    <exam-form-item 
+                    <assignment-form-item 
                       :form-item="formItem" 
                       :index="index" 
                       v-if="formItem.component.type === 'questionGroup'" 
@@ -82,15 +82,15 @@
                           </v-list-item>
                         </v-card>
                       </template>
-                    </exam-form-item>
-                    <exam-form-item 
+                    </assignment-form-item>
+                    <assignment-form-item 
                       v-else
                       :form-item="formItem" 
                       :index="index" 
                       :is-submit="isAssignmentSubmit" 
                       :is-review="isAssignmentReview" 
                       :exam-review="assignmentReview">
-                    </exam-form-item>
+                    </assignment-form-item>
                   </v-list-item-content>
                 </v-list-item>
               </v-card>
