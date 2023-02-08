@@ -139,12 +139,7 @@
     vuetify: new Vuetify(),
     data: {
       // 作业检索信息
-      articleId: '',
-      courseBatchId: '',
-      classId: '',
-      userId: '',
       assignmentId: '',
-      albumId: '',
 
       // 页面控制参数
       allowUserStart: true,
@@ -204,15 +199,8 @@
     watch: {},
     async created() {
       const urlParams = new URLSearchParams(location.search);
-      const articleId = urlParams.get('articleId');
-      if (articleId) {
-        this.articleId = articleId;
-      } else {
-        setTimeout(() => {
-          window.vtoast.fail('请从"作业列表"点击"考作业"进入');
-        }, 1000);
-        return;
-      }
+      this.assignmentId = urlParams.get('assignmentId');
+      
       await this.doUiAction('getUserAssignment');
     },
     methods: {
@@ -291,27 +279,7 @@
           break;
         }
       },
-      async insertUserAssignment() {
-        let actionData = { articleId: this.articleId };
-        
-        const packageData = {
-          data: {
-            appData: {
-              pageId: 'assignmentPaper',
-              actionId: 'insertUserAssignment',
-              actionData: actionData
-            }
-          }
-        }
-        //console.log('[insertUserAssignment] packageData: ', packageData);
-        const result = await window.jianghuAxios(packageData);
-        //console.log('[insertUserAssignment]result: ', result);
-        return result.data.appData.resultData.assignmentId;
-      },
       async getUserAssignment() {
-        if (!this.assignmentId) {
-          this.assignmentId = await this.insertUserAssignment();
-        }
         const packageData = {
           data: {
             appData: {
@@ -324,13 +292,8 @@
             }
           }
         }
-        //console.log('[getUserAssignment] packageData: ', packageData);
         const result = await window.jianghuAxios(packageData);
-        //console.log('[getUserAssignment]result: ', result);
         this.userAssignment = result.data.appData.resultData.rows[0];
-        // this.userAssignment = await this.demoDataHandler.getUserAssignment(this.currentAssignmentStatus);
-        // console.log('[getUserAssignment] this.currentAssignmentStatus: ', this.currentAssignmentStatus);
-        // console.log('[getUserAssignment] this.userAssignment: ', this.userAssignment);
       },
       async setAssignmentConstants() {
         this.assignmentCountDown = '';
@@ -398,7 +361,6 @@
           });
         }
         return review;
-        // return (this.userAssignment.assignmentReview) ? JSON.parse(this.userAssignment.assignmentReview) : {};
       },
       startAutoSaveTimer() {
         if (this.autoSaveEnabled) {
@@ -420,7 +382,6 @@
         //console.log('[packUserAnswerForSave] this.actionDataForSave: ', this.actionDataForSave);
       },
       async saveUserAssignment() {
-        //console.log('[saveUserAssignment]: ', dayjs().format());
         const packageData = {
           data: {
             appData: {
@@ -431,9 +392,8 @@
             }
           }
         }
-        //console.log('[saveUserAssignment] packageData: ', packageData);
         const result = await window.jianghuAxios(packageData);
-        //console.log('[saveUserAssignment]result: ', result);
+        window.vtoast.success('保存成功');
       },
       async confirmSubmitUserAssignment() {
         if (await window.confirmDialog({ title: "提交", content: "提交以后作业将无法修改。确定提交作业吗？" }) === false) {

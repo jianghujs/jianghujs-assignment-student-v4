@@ -1,5 +1,5 @@
-'use strict';
-const Service = require('egg').Service;
+"use strict";
+const Service = require("egg").Service;
 const { BizError, errorInfoEnum } = require("../constant/error");
 const { tableEnum } = require("../constant/constant");
 const validateUtil = require("@jianghujs/jianghu/app/common/validateUtil");
@@ -19,137 +19,84 @@ const actionDataScheme = Object.freeze({
 });
 
 class AssignmentService extends Service {
-
-  async insertUserAssignment() {
+  // 重做作业
+  // 清空已做的作业，并且重做次数+1，判断是否大于最大重做次数
+  async redoUserAssignment() {
     const { ctx, app } = this;
     const { jianghuKnex, config } = app;
-    const { userId } = ctx.userInfo;
-    const { actionData } = ctx.request.body.appData;
-    const { articleId, courseBatchId, albumId, classId } = actionData;
-    
-    const { tableCourse, tableAlbum } = config;
+    const { where } = ctx.request.body.appData;
+    const { assignmentId } = where;
 
-    let whereOptions = {
-      articleId,
-      userId
+    const existingAssignmentRecord = await jianghuKnex(tableEnum.assignment)
+      .where({ assignmentId })
+      .select();
+    if (!existingAssignmentRecord || existingAssignmentRecord.length != 1) {
+      throw new Error("作业记录出错，请联系系统管理员！");
+    }
+
+    const assignment = existingAssignmentRecord[0];
+
+    const assignmentUserAnswer = this._extractDefaultAssignment(
+      JSON.parse(assignment.assignmentStandardAnswer)
+    );
+    const retryNumber = parseInt(assignment.assignmentRetryNumber) + 1;
+
+    const newActionData = {
+      assignmentScore: 0,
+      assignmentRetryNumber: retryNumber,
+      assignmentSubmitStatus: "new",
+      assignmentSubmitAt: null,
+      assignmentUserAnswer: JSON.stringify(assignmentUserAnswer),
+      assignmentReview: null,
+      assignmentReviewUserId: null,
+      assignmentReviewUser: null,
+      assignmentReviewStatus: "",
+      assignmentReviewAt: null,
     };
 
-    const existingAssignment = await jianghuKnex(tableEnum.assignment).where(whereOptions).select();
-    let assignmentId = '';
-
-    //console.log('[insertUserAssignment] existingAssignment: ', existingAssignment);
-
-    if (existingAssignment && existingAssignment.length > 1){
-      throw new Error('作业记录出错，请联系系统管理员！');
-    } else if (existingAssignment && existingAssignment.length == 1) {
-      assignmentId = existingAssignment[0].assignmentId;
-  } else {
-      assignmentId = `${articleId}_${userId}_` + _.random(100000, 999999);
-
-      const articleList = await jianghuKnex(tableEnum.article).where({articleId}).select();
-      if (!articleList || articleList.length == 0) {
-        throw new Error({ errorReason: '作业文章不存在' });
-      }
-      const article = articleList[0];
-      // if (article.articleAssignmentPublishStatus != 'publish') {
-      //   throw new Error({ errorReason: '作业题目未发布！' });
-      // }
-      const assignmentUserAnswer = this.extractDefaultAssignment(JSON.parse(article.articleAssignment));
-      const assignmentStandardAnswer = JSON.parse(article.articleAssignmentWithAnswer).formItemList;
-      const assignmentFullMarks = this.calculateAssignmentFullMarks(assignmentStandardAnswer);
-      
-      const userAssignment = {
-        assignmentId: assignmentId,
-        // albumId,
-        // classId,
-        // courseId,
-        // courseBatchId,
-        articleId,
-        articleTitle: article.articleTitle,
-        userId,
-        assignmentRetryNumber: 0,
-        assignmentSubmitStatus: 'new',
-        assignmentUserAnswer: JSON.stringify(assignmentUserAnswer),
-        assignmentStandardAnswer: JSON.stringify(assignmentStandardAnswer),
-        assignmentScore: 0,
-        assignmentFullMarks,
-        assignmentReviewStatus: ''
-      }
-
-      //console.log('[insertUserAssignment] userAssignment:', userAssignment);
-      await jianghuKnex(tableEnum.assignment, ctx).jhInsert(userAssignment);
-    }
-
-    return {
-      assignmentId
-    }
+    ctx.request.body.appData.actionData = newActionData;
   }
-
-  extractDefaultAssignment({...articleAssignment}) {
-    const {formItemList} = articleAssignment;
+  _extractDefaultAssignment(formItemList) {
     if (!formItemList) {
       return [];
     }
-    formItemList.forEach(item => {
-      this.setDefaultFormItem(item);
-    })
+    formItemList.forEach((item) => {
+      this._setDefaultFormItem(item);
+    });
     return formItemList;
   }
 
-  setDefaultFormItem(item) {
+  _setDefaultFormItem(item) {
     const file = {};
-    item.component.uploadConfig.forEach(type => {
-      file[type] = '';
-    })
-    let answer = '';
-    if (['singleSelect', 'multipleSelect'].includes(item.component.type)) {
+    item.component.uploadConfig.forEach((type) => {
+      file[type] = "";
+    });
+    let answer = "";
+    if (["singleSelect", "multipleSelect"].includes(item.component.type)) {
       answer = [];
-    } else if (item.component.type === 'fillBlank') {
+    } else if (item.component.type === "fillBlank") {
       answer = {};
-      item.component.statement.filter(e => e.type === 'input').forEach(e => {
-        answer[e.id] = '';
-      })
+      item.component.statement
+        .filter((e) => e.type === "input")
+        .forEach((e) => {
+          answer[e.id] = "";
+        });
     }
     item.user = {
       file,
       answer,
-      remark: ""
+      remark: "",
     };
-    if (item.component.type === 'markdown') {
-      item.user.answer = `# 主题
-
-## 标题
-
-1.
-2.
-3.
-
-## 标题
-
-1.
-2.
-3. `;
+    if (item.component.type === "markdown") {
+      item.user.answer = ``;
     }
-    if (item.component.type === 'questionGroup') {
-      item.component.itemList.forEach(e => {
+    if (item.component.type === "questionGroup") {
+      item.component.itemList.forEach((e) => {
         this.setDefaultFormItem(e);
-      })
+      });
     }
     return item;
   }
-
-  calculateAssignmentFullMarks(assignmentStandardAnswer) {
-    //console.log('[calculateAssignmentFullMarks]assignmentStandardAnswer: ', assignmentStandardAnswer);
-    var fullMarks = 0;
-    assignmentStandardAnswer.forEach(item => {
-      if (item.component.score) {
-        fullMarks += parseInt(item.component.score);
-      }
-    });
-    return fullMarks;
-  }
-
 }
-
 
 module.exports = AssignmentService;
