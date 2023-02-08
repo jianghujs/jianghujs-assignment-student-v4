@@ -108,6 +108,16 @@
           disabled: true,
         }
       ],
+      constantCollection: {
+        assignmentStatus: {
+          save: '已保存',
+          submit: '已提交',
+          new: '新作业',
+        },
+        assignmentReviewStatus: {
+          publish: '已批改',
+        },
+      },
       // 表格相关数据
       isTableZebraLineMenuShown: false,
       tableZebraLineMenuPosition: { x: null, y: null },
@@ -120,6 +130,8 @@
         { text: '操作', value: 'action', align: 'center', sortable: false, width: 50, class: 'fixed', cellClass: 'fixed' },
         { text: "作业ID", value: "assignmentId", width: 50 },
         { text: "作业标题", value: "articleTitle", width: 120 },
+        { text: "提交状态", value: "assignmentSubmitStatus", width: 60 },
+        { text: "批改状态", value: "assignmentReviewStatus", width: 100 },
       ],
     },
     mounted() {
@@ -155,8 +167,12 @@
             }
           }
         });
-
-        this.tableData = result.data.appData.resultData.rows;
+        const { rows } = result.data.appData.resultData
+        rows.forEach(assignment => {
+          assignment.assignmentSubmitStatus = this.constantCollection.assignmentStatus[assignment.assignmentSubmitStatus]
+          assignment.assignmentReviewStatus = this.constantCollection.assignmentReviewStatus[assignment.assignmentReviewStatus]
+        })
+        this.tableData = rows;
         this.isTableLoading = false;
       },
 

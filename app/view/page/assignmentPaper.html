@@ -10,7 +10,7 @@
         <!-- 头部内容 >>>>>>>>>>>>> -->
         <v-row class="px-8">
           <v-col cols="12" xs="12" sm="12" md="6" xl="4">
-            <div class="pt-3 text-h7 font-weight-bold">
+            <div class="pt-3 text-h7 font-weight-bold text-subtitle-1">
               {{ assignmentTitle }}
               <span>
                第 {{ assignmentRetryNumber + 1 }}次做题
@@ -18,38 +18,36 @@
               <span v-if="isAssignmentSubmit">
                 {{ assignmentResult }}
               </span>
-              <v-btn color="error" small @click="doUiAction('goto_assignmentList')">返回</v-btn>
               <br>
-              <span style="font-size: 14px; color: #000;">
+              <span class="text-subtitle-2">
                 {{ assignmentStatusDesc }}
               </span>
             </div>
-            <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
           </v-col>
           <!--pc端的搜索条件表单 >>>>>>>> -->
-          <v-col cols="12" xs="12" sm="12" md="6" xl="8" v-if="!isAssignmentLoading" >
+          <v-col cols="12" xs="12" sm="12" md="6" xl="8">
             <v-row class="jh-backend-form-container justify-end ma-0 py-1 pb-xs-2">
-              <v-spacer v-if="!isMobile"></v-spacer>
-              <v-col cols="6" sm="6" md="6" xl="3" :class="{'pr-0': !isMobile}" :style="{'max-width': !isMobile ? '250px' : 'unset'}">
-                <v-btn v-if="!isAssignmentSubmit" elevation="0"
+              <v-spacer class="sm-hide"></v-spacer>
+              <v-col cols="6" sm="6" md="6" xl="3" class="md-pr-0 d-flex justify-end items-center">
+                <v-btn elevation="0"
                   color="success" dark
-                  @click.stop="doUiAction('saveUserAssignment')"
-                  :loading="isAssignmentLoading">
+                  v-if="!isAssignmentSubmit"
+                  class="mr-3"
+                  @click.stop="doUiAction('saveUserAssignment')">
                   保存
                 </v-btn>
-                <v-btn v-if="!isAssignmentSubmit" elevation="0"
+                <v-btn elevation="0"
                   color="primary" dark
-                  @click.stop="doUiAction('submitUserAssignment', {submit: 'submit'})"
-                  :loading="isAssignmentLoading">
+                  v-if="!isAssignmentSubmit"
+                  @click.stop="doUiAction('submitUserAssignment', {submit: 'submit'})">
                   提交
                 </v-btn>
-                <v-radio-group v-if="isAssignmentSubmit" v-model="answerType" row @change="doUiAction('toggleAnswerDisplay')">
+                <v-radio-group class="mt-0" v-if="isAssignmentSubmit" v-model="answerType" row @change="doUiAction('toggleAnswerDisplay')">
                   <v-radio label="正确答案" color="error" value="正确答案"></v-radio>
                   <v-radio label="我的答案" color="error" value="我的答案"></v-radio>
                 </v-radio-group>
                 <v-btn v-if="isAssignmentSubmit" elevation="0"
-                  color="primary" dark @click.stop="doUiAction('redoUserAssignment')"
-                  :loading="isAssignmentLoading">
+                  color="primary" dark @click.stop="doUiAction('redoUserAssignment')">
                   重做
                 </v-btn>
             </v-row>
@@ -60,7 +58,7 @@
 
         <div class="jh-page-body-container px-8">
           <!-- 页面内容 >>>>>>>>>>>>> -->
-            <div v-if="allowUserStart" :style="{'max-height': isMobile ? 'calc(100vh - 210px)' : 'calc(100vh - 170px)' }" style="overflow: auto;">
+            <div v-if="allowUserStart" style="overflow: auto;">
               <!-- 考试题目列表 -->
               <v-card v-for="(formItem, index) in assignmentAnswer" :key="index" class="ma-2 formItem-item-body" elevation="4" dense>
                 <v-list-item :class="{'pa-0': formItem.component.type === 'markdown'}">
@@ -143,10 +141,10 @@
 
       // 页面控制参数
       allowUserStart: true,
-      isAssignmentLoading: true,
+      isCanSubmit: true,
       showStandardAnswer: false,
       answerType: '我的答案',
-      
+
       // 页面常数:
       assignmentOptionKey: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
 
@@ -175,22 +173,13 @@
       actionDataForSubmit: {},
     },
     computed: {
-      isAssignmentSubmit () {
-        if (this.isAssignmentLoading) {
-          return false;
-        }
-        return this.userAssignment.assignmentSubmitStatus === 'submit' || this.userAssignment.assignmentSubmitStatus === 'publish';
+      isAssignmentSubmit() {
+        return ['submit', 'publish'].includes(this.userAssignment.assignmentSubmitStatus);
       },
-      isAssignmentReview () {
-        if (this.isAssignmentLoading) {
-          return false;
-        }
-        return this.userAssignment.assignmentReviewStatus === 'publish';
+      isAssignmentReview() {
+        return ['submit', 'publish'].includes(this.userAssignment.assignmentReviewStatus);
       },
-      isMobile() {
-        return window.innerWidth < 600;
-      },
-      assignmentResult () { 
+      assignmentResult() {
         const scoreText = (this.assignmentScore || this.assignmentScore == 0) ? this.assignmentScore : '待批改';
         const fullMarkText = (this.assignmentFullMarks || this.assignmentFullMarks == 0) ? this.assignmentFullMarks : '未设置';
         return `【得分：${scoreText} | 满分：${fullMarkText}】`;
@@ -200,83 +189,41 @@
     async created() {
       const urlParams = new URLSearchParams(location.search);
       this.assignmentId = urlParams.get('assignmentId');
-      
+
       await this.doUiAction('getUserAssignment');
     },
     methods: {
       async doUiAction(uiActionId, uiActionData) {
-        switch(uiActionId) {
+        switch (uiActionId) {
           case 'getUserAssignment':
             await this.getUserAssignment();
             await this.setAssignmentConstants();
-            if (!this.isAssignmentSubmit && !this.isAssignmentLoading) {
-              this.startAutoSaveTimer();
-            }
-            this.isAssignmentLoading = false;
-            this.allowUserStart = true;
             break;
           case 'saveUserAssignment':
-            if (!this.isAssignmentSubmit) {
-              clearTimeout(this.autoSaveTimeOut);
-              this.lastSaveTime = dayjs().format();
-              await this.packUserAnswerForSave();
-              await this.saveUserAssignment();
-              this.assignmentStatusDesc = `上次保存时间：${dayjs(this.lastSaveTime).format('YYYY年MM月DD日HH:mm:ss')}`;
-              this.showStandardAnswer = false;
-              this.startAutoSaveTimer();
-            }
+            await this.packUserAnswerForSave();
+            await this.saveUserAssignment();
+            this.startAutoSaveTimer();
             break;
           case 'submitUserAssignment':
-            if (!this.isAssignmentSubmit) {
-              await this.confirmSubmitUserAssignment();
-              clearTimeout(this.autoSaveTimeOut);
-              this.isAssignmentLoading = true;
-              await this.packUserAnswerForSubmit();
-              await this.submitUserAssignment();
-              //this.currentAssignmentStatus = 'submit';
-              await this.getUserAssignment();
-              await this.setAssignmentConstants();
-              this.isAssignmentLoading = false;
-            }
+            await this.confirmSubmitUserAssignment();
+            await this.packUserAnswerForSubmit();
+            await this.submitUserAssignment();
+            await this.getUserAssignment();
+            await this.setAssignmentConstants();
             break;
-          case 'redoUserAssignment':            
-            if (this.isAssignmentSubmit) {
-              await this.confirmRedoUserAssignment();
-              this.isAssignmentLoading = true;
-              await this.packUserAnswerForRedo();
-              await this.redoUserAssignment();
-              //this.currentAssignmentStatus = 'redo';
-              this.showStandardAnswer = false;
-              await this.getUserAssignment();
-              await this.setAssignmentConstants();
-              if (!this.isAssignmentSubmit) {
-                this.startAutoSaveTimer();
-              }
-              this.isAssignmentLoading = false;
-              this.allowUserStart = true;
-            }
+          case 'redoUserAssignment':
+            await this.confirmRedoUserAssignment();
+            await this.packUserAnswerForRedo();
+            await this.redoUserAssignment();
+            await this.getUserAssignment();
+            await this.setAssignmentConstants();
             break;
           case 'toggleAnswerDisplay':
-          if (!this.isAssignmentSubmit) {
-              throw new Error('作业还没提交，不能切换答案的显示！');
-            } else {
-              if (this.answerType == '正确答案') {
-                this.assignmentStatusDesc = '已提交 | 正在查看正确答案';
-                this.assignmentAnswer = this.assignmentStandardAnswer;
-                this.showStandardAnswer = true;
-              } else {
-                this.assignmentStatusDesc = '已提交';
-                this.assignmentAnswer = this.assignmentUserAnswer;
-                this.showStandardAnswer = false;
-              }
-            }
+            await this.toggleAnswerDisplay();
             break;
-          case 'goto_assignmentList':
-            await this.gotoAssignmentList();
+          default:
+            console.error("[doUiAction] uiActionId not find", { uiActionId });
             break;
-        default:
-          console.error("[doUiAction] uiActionId not find", { uiActionId });
-          break;
         }
       },
       async getUserAssignment() {
@@ -294,6 +241,11 @@
         }
         const result = await window.jianghuAxios(packageData);
         this.userAssignment = result.data.appData.resultData.rows[0];
+
+        if (this.userAssignment.assignmentSubmitStatus != 'submit') {
+          this.startAutoSaveTimer();
+        }
+        this.allowUserStart = true;
       },
       async setAssignmentConstants() {
         this.assignmentCountDown = '';
@@ -305,7 +257,7 @@
           this.assignmentStatusDesc = `上次保存时间：${dayjs(this.userAssignment.assignmentSubmitAt).format('YYYY年MM月DD日HH:mm:ss')}`;
           this.startAutoSaveTimer();
         } else {
-          this.assignmentStatusDesc = '已提交';          
+          this.assignmentStatusDesc = '已提交';
           clearTimeout(this.autoSaveTimeOut);
         }
 
@@ -326,7 +278,7 @@
           this.assignmentAnswer = this.assignmentUserAnswer;
         }
       },
-      
+
       setAssignmentUserAnswerForTemplate() {
         return JSON.parse(this.userAssignment.assignmentUserAnswer);
       },
@@ -351,7 +303,7 @@
         };
         if (this.userAssignment.assignmentReview) {
           const assignmentReview = JSON.parse(this.userAssignment.assignmentReview);
-          review = { ... review, ... assignmentReview };
+          review = { ...review, ...assignmentReview };
         } else {
           this.assignmentStandardAnswer.forEach(question => {
             review[question.id] = {
@@ -362,7 +314,7 @@
         }
         return review;
       },
-      startAutoSaveTimer() {
+      async startAutoSaveTimer() {
         if (this.autoSaveEnabled) {
           console.log('timer started');
           this.autoSaveTimeOut = setTimeout(this.autoSaveUserAssignment, this.autoSaveInterval);
@@ -373,15 +325,19 @@
         await this.doUiAction('saveUserAssignment');
       },
       async packUserAnswerForSave() {
-        this.actionDataForSave = { 
+        this.actionDataForSave = {
           assignmentSubmitStatus: 'save',
           assignmentSubmitAt: this.lastSaveTime,
           assignmentUserAnswer: JSON.stringify(this.assignmentAnswer),
         }
-
-        //console.log('[packUserAnswerForSave] this.actionDataForSave: ', this.actionDataForSave);
       },
       async saveUserAssignment() {
+        if (!this.isCanSubmit) return;
+        window.vtoast.loading('保存中...');
+        this.isCanSubmit = false;
+        clearTimeout(this.autoSaveTimeOut);
+        this.lastSaveTime = dayjs().format();
+
         const packageData = {
           data: {
             appData: {
@@ -393,6 +349,9 @@
           }
         }
         const result = await window.jianghuAxios(packageData);
+        this.isCanSubmit = true;
+        this.assignmentStatusDesc = `上次保存时间：${dayjs(this.lastSaveTime).format('YYYY年MM月DD日HH:mm:ss')}`;
+        this.showStandardAnswer = false;
         window.vtoast.success('保存成功');
       },
       async confirmSubmitUserAssignment() {
@@ -401,14 +360,17 @@
         }
       },
       async packUserAnswerForSubmit() {
-        this.actionDataForSubmit = { 
+        this.actionDataForSubmit = {
           assignmentSubmitStatus: 'submit',
           assignmentSubmitAt: dayjs().format(),
           assignmentUserAnswer: JSON.stringify(this.assignmentAnswer),
         }
-        //console.log('[packUserAnswerForSubmit] this.actionDataForSubmit: ', this.actionDataForSubmit);
       },
       async submitUserAssignment() {
+        if (!this.isCanSubmit) return;
+        clearTimeout(this.autoSaveTimeOut);
+        this.isCanSubmit = false;
+        window.vtoast.loading('提交中...');
         const packageData = {
           data: {
             appData: {
@@ -419,9 +381,9 @@
             }
           }
         }
-        //console.log('[submitUserAssignment] packageData: ', packageData);
         const result = await window.jianghuAxios(packageData);
-        //console.log('[submitUserAssignment] result: ', result);
+        this.isCanSubmit = true;
+        window.vtoast.success('提交成功');
       },
       async confirmRedoUserAssignment() {
         if (await window.confirmDialog({ title: "重做", content: "之前的答案和批改将被清空。确定重做作业吗？" }) === false) {
@@ -432,6 +394,7 @@
         // nothing to do
       },
       async redoUserAssignment() {
+        window.vtoast.loading('开始重做中...');
         const packageData = {
           data: {
             appData: {
@@ -442,18 +405,45 @@
             }
           }
         }
-        //console.log('[redoUserAssignment] packageData: ', packageData);
         const result = await window.jianghuAxios(packageData);
-        //console.log('[redoUserAssignment] result: ', result);
+
+        window.vtoast.success('恢复成功');
+        this.showStandardAnswer = false;
+        if (!this.isAssignmentSubmit) {
+          this.startAutoSaveTimer();
+        }
+        this.allowUserStart = true;
       },
-      async gotoAssignmentList() {
-        //window.location.href = `/<$ ctx.app.config.appId $>/page/courseArticleList`;
-        history.go(-1);
+      async toggleAnswerDisplay() {
+        if (!this.isAssignmentSubmit) {
+          throw new Error('作业还没提交，不能切换答案的显示！');
+        } else {
+          if (this.answerType == '正确答案') {
+            this.assignmentStatusDesc = '已提交 | 正在查看正确答案';
+            this.assignmentAnswer = this.assignmentStandardAnswer;
+            this.showStandardAnswer = true;
+          } else {
+            this.assignmentStatusDesc = '已提交';
+            this.assignmentAnswer = this.assignmentUserAnswer;
+            this.showStandardAnswer = false;
+          }
+        }
       }
     }
   })
 </script>
 
 <style scoped>
+  @media (max-width: 600px) {
+    .sm-hide {
+      display: none;
+    }
+  }
+
+  @media (min-width: 600px) {
+    .md-pr-0 {
+      padding-right: 0;
+    }
+  }
 </style>
 {% endblock %}
