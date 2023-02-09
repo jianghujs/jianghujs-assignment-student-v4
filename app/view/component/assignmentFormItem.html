@@ -9,7 +9,7 @@
     <template v-else-if="formItem.component.type === 'singleSelect'">
       <v-list-item-title class="formItem-title">
         {{ index+1 }}、 {{ formItem.component.statement }}
-        <span v-if="formItem.component.score">（{{ formItem.component.score }}分）</span>
+        <span class="mt-2 d-block" v-if="formItem.component.score">（{{ formItem.component.score }}分）</span>
       </v-list-item-title>
       <div v-if="formItem.component.markdownContent" ref="assignmentMarkdownContent"
         class="assignmentMarkdownContent markdown-body" :data-content="formItem.component.markdownContent"></div>
@@ -24,7 +24,7 @@
     <template v-else-if="formItem.component.type === 'multipleSelect'">
       <v-list-item-title class="formItem-title">
         {{ index+1 }}、 {{ formItem.component.statement }}
-        <span v-if="formItem.component.score">（{{ formItem.component.score }}分）</span>
+        <span class="mt-2 d-block" v-if="formItem.component.score">（{{ formItem.component.score }}分）</span>
       </v-list-item-title>
       <div v-if="formItem.component.markdownContent" ref="assignmentMarkdownContent"
         class="assignmentMarkdownContent markdown-body" :data-content="formItem.component.markdownContent"></div>

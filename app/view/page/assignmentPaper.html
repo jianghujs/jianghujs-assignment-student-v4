@@ -72,12 +72,15 @@
                       :exam-review="assignmentReview"
                     >
                       <template slot="questionGroup">
-                        <v-card v-for="(item, i) in formItem.component.itemList" :key="i" class="mt-2" dense outlined>
-                          <v-list-item :class="{'pa-0': formItem.component.type === 'markdown'}">
-                            <v-list-item-content>
-                              <form-item :form-item="item" :index="i"></form-item>
-                            </v-list-item-content>
-                          </v-list-item>
+                        <v-card v-for="(item, i) in formItem.component.itemList" :key="i" class="mt-2 px-3 py-3" dense outlined>
+                          
+                          <assignment-form-item 
+                          :form-item="item" 
+                          :index="i" 
+                          :is-submit="isAssignmentSubmit" 
+                          :is-review="isAssignmentReview" 
+                          :exam-review="assignmentReview">
+                        </assignment-form-item>
                         </v-card>
                       </template>
                     </assignment-form-item>
@@ -272,7 +275,7 @@
         this.assignmentUserAnswer = this.setAssignmentUserAnswerForTemplate();
         this.assignmentStandardAnswer = this.setAssignmentStandardAnswerForTemplate();
         this.assignmentReview = this.setAssignmentReviewForTemplate();
-
+        debugger
         if (this.showStandardAnswer) {
           this.assignmentAnswer = this.assignmentStandardAnswer;
           this.assignmentStatusDesc += ' | 正在查看正确答案';
@@ -282,6 +285,8 @@
       },
 
       setAssignmentUserAnswerForTemplate() {
+        // 合并标准答案和用户答案
+
         return JSON.parse(this.userAssignment.assignmentUserAnswer);
       },
       setAssignmentStandardAnswerForTemplate() {
@@ -301,7 +306,7 @@
       },
       setAssignmentReviewForTemplate() {
         let review = {
-          overallComment: '',
+          
         };
         if (this.userAssignment.assignmentReview) {
           const assignmentReview = JSON.parse(this.userAssignment.assignmentReview);

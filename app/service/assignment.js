@@ -77,7 +77,7 @@ class AssignmentService extends Service {
     }
     if (item.component.type === "questionGroup") {
       item.component.itemList.forEach((e) => {
-        this.setDefaultFormItem(e);
+        this._setDefaultFormItem(e);
       });
     }
     return item;
