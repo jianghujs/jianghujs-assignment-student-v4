@@ -210,12 +210,14 @@
             await this.packUserAnswerForSubmit();
             await this.clearAutoSaveTimer();
             await this.submitUserAssignment();
+            await this.startAutoSaveTimer();
             await this.getUserAssignment();
             await this.setAssignmentConstants();
             break;
           case 'redoUserAssignment':
             await this.confirmRedoUserAssignment();
             await this.packUserAnswerForRedo();
+            await this.clearAutoSaveTimer();
             await this.redoUserAssignment();
             await this.getUserAssignment();
             await this.setAssignmentConstants();
@@ -247,10 +249,6 @@
         this.userAssignment = result.data.appData.resultData.rows[0];
 
         this.isAssignmentLoading = false;
-
-        if (!this.isAssignmentSubmit) {
-          this.startAutoSaveTimer();
-        }
       },
       async setAssignmentConstants() {
         this.assignmentCountDown = '';
@@ -275,7 +273,6 @@
         this.assignmentUserAnswer = this.setAssignmentUserAnswerForTemplate();
         this.assignmentStandardAnswer = this.setAssignmentStandardAnswerForTemplate();
         this.assignmentReview = this.setAssignmentReviewForTemplate();
-        debugger
         if (this.showStandardAnswer) {
           this.assignmentAnswer = this.assignmentStandardAnswer;
           this.assignmentStatusDesc += ' | 正在查看正确答案';
@@ -285,28 +282,62 @@
       },
 
       setAssignmentUserAnswerForTemplate() {
-        // 合并标准答案和用户答案
+        const { assignmentUserAnswer, assignmentStandardAnswer } = this.userAssignment;
 
-        return JSON.parse(this.userAssignment.assignmentUserAnswer);
+        if (assignmentUserAnswer) return JSON.parse(assignmentUserAnswer);
+
+        const standardAnswer = JSON.parse(this.userAssignment.assignmentStandardAnswer);
+        standardAnswer.forEach(question => {
+          question = this._setUserDefaultFormItem(question);
+        });
+
+        return standardAnswer;
       },
+      // 构建带有答案的标准题目
       setAssignmentStandardAnswerForTemplate() {
         let standardAnswer = [];
         if (this.userAssignment.assignmentStandardAnswer) {
           standardAnswer = JSON.parse(this.userAssignment.assignmentStandardAnswer);
-          standardAnswer = standardAnswer.map(question => {
-            question.user = {
-              "file": {},
-              "answer": question.component.answer,
-              "remark": ""
-            };
-            return question;
+          standardAnswer.forEach(question => {
+            question = this._setUserDefaultFormItem(question, true);
           });
         }
         return standardAnswer;
       },
+      _setUserDefaultFormItem(item, showAnswer = false) {
+        const file = {};
+        item.component.uploadConfig.forEach((type) => {
+          file[type] = "";
+        });
+        let answer = "";
+        if (["singleSelect", "multipleSelect"].includes(item.component.type)) {
+          answer = showAnswer ? item.component.answer : [];
+        } else if (item.component.type === "fillBlank") {
+          answer = showAnswer ? item.component.answer : {};
+          item.component.statement
+            .filter((e) => e.type === "input")
+            .forEach((e) => {
+              answer[e.id] = showAnswer ? item.component.answer : "";
+            });
+        }
+        item.user = {
+          file,
+          answer,
+          remark: "",
+        };
+        if (item.component.type === "markdown") {
+          item.user.answer = showAnswer ? item.component.answer : ``;
+        }
+        if (item.component.type === "questionGroup") {
+          item.component.itemList.forEach((e) => {
+            e = this._setUserDefaultFormItem(e, showAnswer ? true : false);
+          });
+        }
+        return item;
+      },
       setAssignmentReviewForTemplate() {
         let review = {
-          
+
         };
         if (this.userAssignment.assignmentReview) {
           const assignmentReview = JSON.parse(this.userAssignment.assignmentReview);
@@ -317,6 +348,14 @@
               "score": "",
               "comment": "",
             };
+            if (question.component.type === 'questionGroup') {
+              question.component.itemList.forEach(groupQuestion=> {
+                review[groupQuestion.id] = {
+                  "score": "",
+                  "comment": "",
+                };
+              })
+            }
           });
         }
         return review;

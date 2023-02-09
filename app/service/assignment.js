@@ -20,18 +20,14 @@ class AssignmentService extends Service {
     }
 
     const assignment = existingAssignmentRecord[0];
-
-    const assignmentUserAnswer = this._extractDefaultAssignment(
-      JSON.parse(assignment.assignmentStandardAnswer)
-    );
-    const retryNumber = parseInt(assignment.assignmentRetryNumber) + 1;
+    const retryNumber = parseInt(assignment.assignmentRetryNumber || 0) + 1;
 
     const newActionData = {
       assignmentScore: 0,
       assignmentRetryNumber: retryNumber,
       assignmentSubmitStatus: "new",
       assignmentSubmitAt: null,
-      assignmentUserAnswer: JSON.stringify(assignmentUserAnswer),
+      assignmentUserAnswer: null,
       assignmentReview: null,
       assignmentReviewUserId: null,
       assignmentReviewUser: null,
@@ -40,47 +36,6 @@ class AssignmentService extends Service {
     };
 
     ctx.request.body.appData.actionData = newActionData;
-  }
-  _extractDefaultAssignment(formItemList) {
-    if (!formItemList) {
-      return [];
-    }
-    formItemList.forEach((item) => {
-      this._setDefaultFormItem(item);
-    });
-    return formItemList;
-  }
-
-  _setDefaultFormItem(item) {
-    const file = {};
-    item.component.uploadConfig.forEach((type) => {
-      file[type] = "";
-    });
-    let answer = "";
-    if (["singleSelect", "multipleSelect"].includes(item.component.type)) {
-      answer = [];
-    } else if (item.component.type === "fillBlank") {
-      answer = {};
-      item.component.statement
-        .filter((e) => e.type === "input")
-        .forEach((e) => {
-          answer[e.id] = "";
-        });
-    }
-    item.user = {
-      file,
-      answer,
-      remark: "",
-    };
-    if (item.component.type === "markdown") {
-      item.user.answer = ``;
-    }
-    if (item.component.type === "questionGroup") {
-      item.component.itemList.forEach((e) => {
-        this._setDefaultFormItem(e);
-      });
-    }
-    return item;
   }
 }
 
