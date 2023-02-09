@@ -1,22 +1,7 @@
 "use strict";
 const Service = require("egg").Service;
-const { BizError, errorInfoEnum } = require("../constant/error");
 const { tableEnum } = require("../constant/constant");
-const validateUtil = require("@jianghujs/jianghu/app/common/validateUtil");
-const idGenerateUtil = require("@jianghujs/jianghu/app/common/idGenerateUtil");
 const _ = require("lodash");
-const dayjs = require("dayjs");
-// ========================================常用 require end=============================================
-const actionDataScheme = Object.freeze({
-  selectArticleAssignmentList: {
-    type: "object",
-    additionalProperties: true,
-    required: [],
-    properties: {
-      articleId: { anyOf: [{ type: "string" }, { type: "number" }] },
-    },
-  },
-});
 
 class AssignmentService extends Service {
   // 重做作业
