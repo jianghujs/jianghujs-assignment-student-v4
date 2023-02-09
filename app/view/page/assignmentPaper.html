@@ -317,7 +317,7 @@
           item.component.statement
             .filter((e) => e.type === "input")
             .forEach((e) => {
-              answer[e.id] = showAnswer ? item.component.answer : "";
+              answer[e.id] = showAnswer ? e.value : "";
             });
         }
         item.user = {
@@ -479,6 +479,7 @@
             this.assignmentAnswer = this.assignmentUserAnswer;
             this.showStandardAnswer = false;
           }
+          console.log('[toggleAnswerDisplay] assignmentAnswer:', this.assignmentAnswer)
         }
       }
     }
