@@ -153,14 +153,12 @@
       assignmentScore: 0,
       assignmentFullMarks: 0,
       assignmentRetryNumber: 0,
-      assignmentCountDown: '',
 
       // 作业状态信息
       assignmentStatusDesc: '',
       lastSaveTime: '',
       autoSaveInterval: 30000,
       autoSaveTimeOut: null,
-      autoSaveEnabled: true,
 
       // 作业内容
       userAssignment: {},
@@ -251,24 +249,31 @@
         this.isAssignmentLoading = false;
       },
       async setAssignmentConstants() {
-        this.assignmentCountDown = '';
+        const {
+          assignmentSubmitStatus,
+          assignmentSubmitAt,
+          articleTitle,
+          assignmentScore,
+          assignmentFullMarks,
+          assignmentRetryNumber,
+        } = this.userAssignment
 
-        if (this.userAssignment.assignmentSubmitStatus == 'new') {
+        if (assignmentSubmitStatus == 'new') {
           this.assignmentStatusDesc = '答题中'
           this.startAutoSaveTimer();
-        } else if (this.userAssignment.assignmentSubmitStatus == 'save') {
-          this.assignmentStatusDesc = `上次保存时间：${dayjs(this.userAssignment.assignmentSubmitAt).format('YYYY年MM月DD日HH:mm:ss')}`;
+        } else if (assignmentSubmitStatus == 'save') {
+          this.assignmentStatusDesc = `上次保存时间：${dayjs(assignmentSubmitAt).format('YYYY年MM月DD日HH:mm:ss')}`;
           this.startAutoSaveTimer();
         } else {
           this.assignmentStatusDesc = '已提交';
-          clearTimeout(this.autoSaveTimeOut);
+          this.clearAutoSaveTimer();
         }
 
-        this.assignmentTitle = (this.userAssignment.articleTitle) ? this.userAssignment.articleTitle : '无题';
-        this.assignmentScore = this.userAssignment.assignmentScore;
-        this.assignmentFullMarks = this.userAssignment.assignmentFullMarks;
-        this.lastSaveTime = this.userAssignment.assignmentSubmitAt;
-        this.assignmentRetryNumber = this.userAssignment.assignmentRetryNumber;
+        this.assignmentTitle = (articleTitle) ? articleTitle : '无题';
+        this.assignmentScore = assignmentScore;
+        this.assignmentFullMarks = assignmentFullMarks;
+        this.lastSaveTime = assignmentSubmitAt;
+        this.assignmentRetryNumber = assignmentRetryNumber;
 
         this.assignmentUserAnswer = this.setAssignmentUserAnswerForTemplate();
         this.assignmentStandardAnswer = this.setAssignmentStandardAnswerForTemplate();
@@ -286,7 +291,7 @@
 
         if (assignmentUserAnswer) return JSON.parse(assignmentUserAnswer);
 
-        const standardAnswer = JSON.parse(this.userAssignment.assignmentStandardAnswer);
+        const standardAnswer = JSON.parse(assignmentStandardAnswer);
         standardAnswer.forEach(question => {
           question = this._setUserDefaultFormItem(question);
         });
@@ -296,8 +301,9 @@
       // 构建带有答案的标准题目
       setAssignmentStandardAnswerForTemplate() {
         let standardAnswer = [];
-        if (this.userAssignment.assignmentStandardAnswer) {
-          standardAnswer = JSON.parse(this.userAssignment.assignmentStandardAnswer);
+        const { assignmentStandardAnswer } = this.userAssignment
+        if (assignmentStandardAnswer) {
+          standardAnswer = JSON.parse(assignmentStandardAnswer);
           standardAnswer.forEach(question => {
             question = this._setUserDefaultFormItem(question, true);
           });
@@ -306,18 +312,19 @@
       },
       _setUserDefaultFormItem(item, showAnswer = false) {
         const file = {};
-        item.component.uploadConfig.forEach((type) => {
+        const currentComponent = item.component
+        currentComponent.uploadConfig.forEach((type) => {
           file[type] = "";
         });
         let answer = "";
-        if (["singleSelect", "multipleSelect"].includes(item.component.type)) {
-          answer = showAnswer ? item.component.answer : [];
-        } else if (item.component.type === "fillBlank") {
-          answer = showAnswer ? item.component.answer : {};
-          item.component.statement
-            .filter((e) => e.type === "input")
-            .forEach((e) => {
-              answer[e.id] = showAnswer ? e.value : "";
+        if (["singleSelect", "multipleSelect"].includes(currentComponent.type)) {
+          answer = showAnswer ? currentComponent.answer : [];
+        } else if (currentComponent.type === "fillBlank") {
+          answer = showAnswer ? currentComponent.answer : {};
+          currentComponent.statement
+            .filter((stateItem) => stateItem.type === "input")
+            .forEach((stateItem) => {
+              answer[stateItem.id] = showAnswer ? stateItem.value : "";
             });
         }
         item.user = {
@@ -325,12 +332,12 @@
           answer,
           remark: "",
         };
-        if (item.component.type === "markdown") {
-          item.user.answer = showAnswer ? item.component.answer : ``;
+        if (currentComponent.type === "markdown") {
+          item.user.answer = showAnswer ? currentComponent.answer : ``;
         }
-        if (item.component.type === "questionGroup") {
-          item.component.itemList.forEach((e) => {
-            e = this._setUserDefaultFormItem(e, showAnswer ? true : false);
+        if (currentComponent.type === "questionGroup") {
+          currentComponent.itemList.forEach((childItem) => {
+            childItem = this._setUserDefaultFormItem(childItem, showAnswer ? true : false);
           });
         }
         return item;
@@ -349,7 +356,7 @@
               "comment": "",
             };
             if (question.component.type === 'questionGroup') {
-              question.component.itemList.forEach(groupQuestion=> {
+              question.component.itemList.forEach(groupQuestion => {
                 review[groupQuestion.id] = {
                   "score": "",
                   "comment": "",
@@ -363,10 +370,8 @@
       // ---------- <<<<<<<<<<<<< 初始化作业 ----------
 
       async startAutoSaveTimer() {
-        if (this.autoSaveEnabled) {
-          console.log('timer started');
-          this.autoSaveTimeOut = setTimeout(this.autoSaveUserAssignment, this.autoSaveInterval);
-        }
+        console.log('timer started');
+        this.autoSaveTimeOut = setTimeout(this.autoSaveUserAssignment, this.autoSaveInterval);
       },
       async clearAutoSaveTimer() {
         clearTimeout(this.autoSaveTimeOut);
