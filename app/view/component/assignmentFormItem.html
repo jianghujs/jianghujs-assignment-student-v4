@@ -117,10 +117,18 @@
         <v-textarea hide-details class="student-remark" placeholder="题目解析" v-model="formItem.component.explanation"
           filled single-line :rows="2" auto-grow />
       </v-col>
-      <v-col cols="12" class="answer-tip-col" v-if="examReview[formItem.id].comment">
+      <v-col cols="12" class="answer-tip-col mt-3" v-if="examReview[formItem.id].comment">
         <span class="inputLabel">教师评语</span>
-        <v-textarea hide-details class="student-remark" placeholder="教师评语" v-model="examReview[formItem.id].comment"
-          filled single-line :rows="2" auto-grow />
+        <v-textarea hide-details class="student-remark" placeholder="教师评语" disabled
+          v-model="examReview[formItem.id].comment" filled single-line :rows="2" auto-grow />
+      </v-col>
+      <v-col>
+        <div class="upload-box my-2 d-flex" v-if="formItem.component.type !== 'displayText'">
+          <upload v-for="(item, fileType, i) in userFileList[formItem.id]" :file-type="fileType"
+            :key="i" :value="userFileList[formItem.id][fileType]" :index="formItem.id" :i="i"
+            :style="{flex: 1, 'margin-left': i > 0 ? '12px' : 0}" @change="onFileSave"></upload>
+        </div>
+
       </v-col>
       <!-- <v-col cols="12"  class="answer-tip-col" v-if="isReview">
         <v-textarea hide-details class="student-remark" placeholder="学生备注" v-model="formItem.user.remark" filled single-line :rows="2" auto-grow/>
@@ -133,7 +141,32 @@
     template: '#assignment-form-item',
     vuetify: new Vuetify(),
     name: 'assignment-form-item',
-    props: ['formItem', 'index', 'isSubmit', 'isReview', 'examReview'],
+    props: {
+      formItem: {
+        type: Object,
+        default: {}
+      },
+      examReview: {
+        type: Object,
+        default: {}
+      },
+      userFileList: {
+        type: Object,
+        default: {}
+      },
+      isSubmit: {
+        type: Boolean,
+        default: false
+      },
+      isReview: {
+        type: Boolean,
+        default: false
+      },
+      index: {
+        type: Number | String,
+        default: 0
+      },
+    },
     data: () => {
       return {
         examOptionKey: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'],
@@ -144,13 +177,17 @@
     watch: {},
     async created() {
       this.markdownToHtml();
+      console.log('userFileList', this.userFileList);
     },
     methods: {
       answerChange() {
       },
       markdownToHtml() {
-      }
-
+      },
+      onFileSave(id, type, file) {
+        this.userFileList[id][type] = file;
+        this.$emit('update:userFileList', this.userFileList)
+      },
     },
   })
 </script>

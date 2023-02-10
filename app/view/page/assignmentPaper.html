@@ -73,7 +73,8 @@
                       :index="index" 
                       v-if="formItem.component.type === 'questionGroup'" 
                       :is-submit="isAssignmentSubmit" 
-                      :is-review="isAssignmentReview" 
+                      :is-review="isAssignmentReview"
+                      :user-file-list.sync="userFileList"
                       :exam-review="assignmentReview"
                     >
                       <template slot="questionGroup">
@@ -81,7 +82,8 @@
                           
                           <assignment-form-item 
                           :form-item="item" 
-                          :index="i" 
+                          :index="i"
+                          :user-file-list.sync="userFileList"
                           :is-submit="isAssignmentSubmit" 
                           :is-review="isAssignmentReview" 
                           :exam-review="assignmentReview">
@@ -95,7 +97,8 @@
                       :index="index" 
                       :is-submit="isAssignmentSubmit" 
                       :is-review="isAssignmentReview" 
-                      :exam-review="assignmentReview">
+                      :exam-review="assignmentReview"
+                      :user-file-list.sync="userFileList">
                     </assignment-form-item>
                   </v-list-item-content>
                 </v-list-item>
@@ -134,6 +137,7 @@
 {% block vueScript %}
 
 <!-- 加载页面组件 >>>>>>>>>>>>> -->
+{% include 'component/upload.html' %}
 {% include 'component/assignmentFormItem.html' %}
 <!-- <<<<<<<<<<<<< 加载页面组件 -->
 
@@ -174,6 +178,8 @@
 
       actionDataForSave: {},
       actionDataForSubmit: {},
+
+      userFileList: {}
     },
     computed: {
       isAssignmentSubmit() {
@@ -205,6 +211,7 @@
           case 'saveUserAssignment':
             await this.packUserAnswerForSave();
             await this.clearAutoSaveTimer();
+            await this.uploadAssignmentFile();
             await this.saveUserAssignment();
             await this.startAutoSaveTimer();
             break;
@@ -289,6 +296,8 @@
         } else {
           this.assignmentAnswer = this.assignmentUserAnswer;
         }
+
+        this.userFileList = this.getUserFileList(this.assignmentUserAnswer);
       },
 
       setAssignmentUserAnswerForTemplate() {
@@ -491,7 +500,85 @@
           }
           console.log('[toggleAnswerDisplay] assignmentAnswer:', this.assignmentAnswer)
         }
+      },
+      async uploadAssignmentFile() {
+        const assignmentUploadData = this.userFileList;
+        const hasUpload = this.hasUploadFile();
+        if (hasUpload) {
+          await this.assignmentUpload({ data: assignmentUploadData });
+        }
+      },
+      hasUploadFile() {
+        for (const id in this.userFileList) {
+          for (const type in this.userFileList[id]) {
+            if (typeof this.userFileList[id][type] !== 'string') {
+              return true;
+            }
+          }
+        }
+        return false;
+      },
+      async assignmentUpload({ data, load = false }) {
+        let that = this;
+        for (const index in data) {
+          await this.assignmentUploadForEach(data, index, that);
+        }
+      },
+      async assignmentUploadForEach(data, index, that) {
+        for (const id in data) {
+          for (const type in data[id]) {
+            const file = data[id][type];
+            if (file && typeof file !== 'string') {
+              window.vtoast.loading(`附件${index + 1}上传 上传进度: 0.00%`);
+              const path = `/assignmentMaterial/${that.userInfo.userId}/${that.userAssignment.assignmentId}/`;
+              const { data: { status } } = await this.assignmentUploadByStream(file, path, that, index)
+              if (status === 'success') {
+                for (const item1 of that.userAssignment.assignmentUserAnswer) {
+                  if (item1.id === id) {
+                    item1.user.file[type] = path + file.name;
+                  }
+                  if (item1.component.itemList && item1.component.type === 'questionGroup') {
+                    for (const item2 of item1.component.itemList) {
+                      if (item2.id === id) {
+                        item2.user.file[type] = path + file.name;
+                      }
+                    }
+                  }
+                }
+                that.userFileList[id][type] = path + file.name;
+              }
+            }
+          }
+        }
+      },
+      async assignmentUploadByStream(file, path, that, i) {
+        return await window.jianghuAxios.httpUploadByStream({
+          file,
+          filenameStorage: file.name,
+          fileDirectory: path,
+          onProgress: (total, loaded) => {
+            that.progress = Number((loaded * 100 / total).toFixed(2));
+            window.vtoast.loading(`附件${i}上传 上传进度: ${that.progress}%`);
+            if (loaded === total) {
+              window.vtoast.success(`附件${i}上传 上传进度: 100%`);
+            }
+          }
+        })
+      },
+      getUserFileList(assignmentUserAnswer) {
+        const fileList = {};
+        _.forEach(assignmentUserAnswer, ({ ...item }, index) => {
+          // fileList.push({ id: item.id, fileList: item.user.file })
+          fileList[item.id] = item.user.file;
+          if (item.component.type === 'questionGroup') {
+            item.component.itemList.forEach(e => {
+              fileList[e.id] = e.user.file;
+            })
+          }
+        })
+        return fileList;
       }
+
     }
   })
 </script>
