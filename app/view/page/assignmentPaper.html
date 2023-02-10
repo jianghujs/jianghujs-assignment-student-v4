@@ -375,7 +375,7 @@
         console.log('[autoSaveUserAssignment]');
         await this.doUiAction('saveUserAssignment');
       },
-      // ---------- 保存作业 >>>>>>>>>>>>> ----------
+      // ---------- 保存作业 uiAction >>>>>>>>>>>>> ----------
       async packUserAnswerForSave() {
         this.actionDataForSave = {
           assignmentSubmitStatus: 'save',
@@ -404,9 +404,9 @@
         this.showStandardAnswer = false;
         window.vtoast.success('保存成功');
       },
-      // ---------- <<<<<<<<<<<<< 保存作业 ----------
+      // ---------- <<<<<<<<<<<<< 保存作业 uiAction ----------
 
-      // ---------- 提交作业 >>>>>>>>>>>>> ----------
+      // ---------- 提交作业 uiAction >>>>>>>>>>>>> ----------
       async confirmSubmitUserAssignment() {
         if (await window.confirmDialog({ title: "提交", content: "提交以后作业将无法修改。确定提交作业吗？" }) === false) {
           throw new Error("[confirmSubmitUserAssignment] 否");
@@ -437,9 +437,9 @@
         this.isCanSubmit = true;
         window.vtoast.success('提交成功');
       },
-      // ---------- <<<<<<<<<<<<< 提交作业 ----------
+      // ---------- <<<<<<<<<<<<< 提交作业 uiAction ----------
 
-      // ---------- 重做作业 >>>>>>>>>>>>> ----------
+      // ---------- 重做作业 uiAction >>>>>>>>>>>>> ----------
       async confirmRedoUserAssignment() {
         if (await window.confirmDialog({ title: "重做", content: "之前的答案和批改将被清空。确定重做作业吗？" }) === false) {
           throw new Error("[confirmRedoUserAssignment] 否");
@@ -465,7 +465,7 @@
         window.vtoast.success('恢复成功');
         this.showStandardAnswer = false;
       },
-      // ---------- <<<<<<<<<<<<< 重做作业 ----------
+      // ---------- <<<<<<<<<<<<< 重做作业 uiAction ----------
       async toggleAnswerDisplay() {
         if (!this.isAssignmentSubmit) {
           throw new Error('作业还没提交，不能切换答案的显示！');
