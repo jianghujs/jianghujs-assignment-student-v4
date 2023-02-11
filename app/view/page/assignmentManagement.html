@@ -9,11 +9,30 @@
       <v-main class="mt-15">
         <!-- 头部内容 >>>>>>>>>>>>> -->
         <div class="jh-page-second-bar px-8">
-          <div class="pt-3 text-h7 font-weight-bold">作业列表
-           <!-- 帮助页按钮 -->
-           <v-icon @click="isHelpPageDrawerShown = true" color="success" small>mdi-help-circle-outline</v-icon>
-          </div>
-          <v-breadcrumbs class="pb-3 pt-0 px-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+          <v-row>
+            <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+              <div class="pt-3 text-h7 font-weight-bold">作业列表
+                <!-- 帮助页按钮 -->
+                <v-icon
+                  @click="isHelpPageDrawerShown = true" color="success"
+                  small>mdi-help-circle-outline
+                </v-icon>
+              </div>
+              <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+            </v-col>
+            <!--pc端的搜索条件表单 >>>>>>>> -->
+            <v-col cols="12" xs="12" sm="12" md="8" xl="9">
+              <v-row class="jh-backend-form-container justify-end ma-0 py-4 pt-xs-0">
+                <v-btn
+                  small :outlined="currentSceneId !== scene.id" v-for="(scene, index) in sceneList"
+                  :key="index" :dark="currentSceneId === scene.id"
+                  @click="doUiAction('useScene', scene)" color="grey darken-1" class="mb-2 ml-1">
+                  {{ scene.name }}
+                </v-btn>
+              </v-row>
+            </v-col>
+            <!-- <<<<<<<< pc端的搜索条件表单 -->
+          </v-row>
         </div>
         <!-- <<<<<<<<<<<<< 头部内容 -->
 
@@ -104,7 +123,7 @@
 {% block vueScript %}
 
 <!-- 加载页面组件 >>>>>>>>>>>>> -->
-{% include 'common/fixedTableHeightV4.html' %}
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
 <!-- <<<<<<<<<<<<< 加载页面组件 -->
 
 <script type="module">
@@ -136,6 +155,14 @@
         },
       },
       isHelpPageDrawerShown: false,
+
+      sceneList: [
+        { "form": {}, "name": "全部", "id": "scene-fixed-all" },
+        { "form": { "assignmentSubmitStatus": "submit" }, "name": "已提交", "id": "scene-fixed-1" },
+        { "form": { "assignmentReviewStatus": "publish" }, "name": "已批改", "id": "scene-fixed-2" },
+      ],
+      currentSceneId: 'scene-fixed-all',
+
       // 表格相关数据
       isTableZebraLineMenuShown: false,
       tableZebraLineMenuPosition: { x: null, y: null },
@@ -158,6 +185,10 @@
     methods: {
       async doUiAction(uiActionId, uiActionData) {
         switch (uiActionId) {
+          case 'useScene':
+            await this.useScene(uiActionData);
+            await this.getTableData();
+            break;
           case 'getTableData':
             await this.getTableData();
             break;
@@ -175,12 +206,18 @@
 
       async getTableData() {
         this.isTableLoading = true;
+        const backendSearchData = _.pickBy(this.serverSearchInput, (fieldValue, fieldKey) => {
+          if (fieldValue !== null && fieldValue !== '') {
+            return true;
+          }
+        });
         const result = await window.jianghuAxios({
           data: {
             appData: {
               pageId: 'assignmentManagement',
               actionId: 'selectItemList',
               actionData: {},
+              where: backendSearchData,
               orderBy: [{ column: 'operationAt', order: 'desc' }]
             }
           }
@@ -193,6 +230,13 @@
         this.tableData = rows;
         this.isTableLoading = false;
       },
+
+      // ---------- 场景 uiAction >>>>>>>>>> --------
+      useScene(funObj) {
+        this.currentSceneId = funObj.id;
+        this.serverSearchInput = _.cloneDeep(funObj.form);
+      },
+      // ---------- <<<<<<<<<<< 场景 uiAction --------
 
       // ---------- 斑马纹开关 uiAction >>>>>>>>>> --------
       async openTableZebraLineMenu(funObj) {

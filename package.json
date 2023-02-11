@@ -8,7 +8,7 @@
     "framework": "@jianghujs/jianghu"
   },
   "dependencies": {
-    "@jianghujs/jianghu": "4.0.5",
+    "@jianghujs/jianghu": "4.0.10",
     "egg": "^2.15.1",
     "egg-scripts": "^2.11.0"
   },
@@ -23,9 +23,9 @@
     "node": ">=10.0.0"
   },
   "scripts": {
-    "start": "egg-scripts start --daemon --port=7100 --title=jianghujs-assignment-student",
+    "start": "egg-scripts start --daemon --port=7003 --title=jianghujs-assignment-student",
     "stop": "egg-scripts stop --title=jianghujs-assignment-student",
-    "dev": "egg-bin dev --port=7100",
+    "dev": "egg-bin dev --port=7003",
     "debug": "egg-bin debug",
     "jianghuConfigImportData": "jianghu jianghuConfigImportData",
     "jianghuConfigDumpData": "jianghu jianghuConfigDumpData",

@@ -58,7 +58,12 @@
 
         <div class="jh-page-body-container px-8">
           <!-- 页面内容 >>>>>>>>>>>>> -->
-            <div style="overflow: auto;">
+            <v-skeleton-loader
+              class="mx-auto"
+              type="card,card"
+              v-if="isAssignmentLoading"
+            ></v-skeleton-loader>
+            <div v-else style="overflow: auto;">
               <!-- 考试题目列表 -->
               <v-card v-for="(formItem, index) in assignmentAnswer" :key="index" class="ma-2 formItem-item-body" elevation="4" dense>
                 <v-list-item :class="{'pa-0': formItem.component.type === 'markdown'}">
