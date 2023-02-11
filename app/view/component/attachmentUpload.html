@@ -1,4 +1,4 @@
-<template id="upload">
+<template id="attachmentUpload">
   <div class="upload-container">
     <form method="post">
       <div class="from-group-lg">
@@ -22,10 +22,10 @@
 </template>
 
 <script>
-  Vue.component("upload", {
+  Vue.component("attachmentUpload", {
     vuetify: new Vuetify(),
-    name: 'upload',
-    template: '#upload',
+    name: 'attachmentUpload',
+    template: '#attachmentUpload',
     props: {
       value: String | Boolean,
       path: String,
@@ -49,8 +49,6 @@
         listItems: [],
         accept: '*',
       };
-    },
-    created() {
     },
     methods: {
       async onFileChange(e) {
