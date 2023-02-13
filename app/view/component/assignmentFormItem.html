@@ -73,8 +73,8 @@
         <v-col v-if="formItem.component.type === 'markdown'" cols="12" class="answer-tip-col"
           :style="{height: isSubmit ? 'auto': '400px'}">
           <md2html v-if="isSubmit" :article-content="formItem.user.answer"></md2html>
-          <div v-else class="editorMdContainer" :id="'editorMdContainer-'+index" style="position: relative;">
-            <textarea style="display:none;">{{formItem.component.answer}}</textarea>
+          <div class="px-4" v-else>
+            <form-item-markdown height="400" :form-item-id="formItem.id" :value="formItem.user.answer" @change="formItem.user.answer=$event"></form-item-markdown>
           </div>
         </v-col>
         <v-col v-else cols="12" class="answer-tip-col">
@@ -123,7 +123,7 @@
           v-model="examReview[formItem.id].comment" filled single-line :rows="2" auto-grow />
       </v-col>
 
-      
+
     </v-row>
 
     <div class="upload-box d-flex">
@@ -169,10 +169,13 @@
         examOptionKey: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'],
       }
     },
+    created() {
+    },
     methods: {
       answerChange() {
       },
       markdownToHtml() {
+       
       },
       onFileSave(id, type, file) {
         this.userFileList[id][type] = file;
@@ -249,6 +252,7 @@
     padding-left: 5px !important;
     padding-right: 5px !important;
   }
+
   .upload-box {
     width: 100%;
   }
