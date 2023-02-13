@@ -122,16 +122,15 @@
         <v-textarea hide-details class="student-remark" placeholder="教师评语" disabled
           v-model="examReview[formItem.id].comment" filled single-line :rows="2" auto-grow />
       </v-col>
-      <div class="upload-box my-2 d-flex" v-if="userFileList[formItem.id]">
-        <attachment-upload v-for="(fileTypeValue, fileTypeKey, fileTypeIndex) in userFileList[formItem.id]" :file-type="fileTypeKey"
-          :key="fileTypeIndex" :value="userFileList[formItem.id][fileTypeKey]" :index="formItem.id" :i="fileTypeIndex"
-          :style="{flex: 1, 'margin-left': fileTypeIndex > 0 ? '12px' : 0}" @change="onFileSave"></attachment-upload>
-      </div>
 
-      <!-- <v-col cols="12"  class="answer-tip-col" v-if="isReview">
-        <v-textarea hide-details class="student-remark" placeholder="学生备注" v-model="formItem.user.remark" filled single-line :rows="2" auto-grow/>
-      </v-col> -->
+      
     </v-row>
+
+    <div class="upload-box d-flex">
+      <attachment-upload v-for="(item, fileType, i) in userFileList[formItem.id]" ref="upload" :file-type="fileType"
+        :key="i" :value="userFileList[formItem.id][fileType]" :index="formItem.id" :i="i"
+        :style="{flex: 1, 'margin-left': i > 0 ? '12px' : 0}" @change="onFileSave"></attachment-upload>
+    </div>
   </div>
 </template>
 <script>
@@ -169,12 +168,6 @@
       return {
         examOptionKey: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'],
       }
-    },
-    computed: {},
-    destroyed() { },
-    async created() {
-      this.markdownToHtml();
-      
     },
     methods: {
       answerChange() {
@@ -255,5 +248,8 @@
     min-height: 30px !important;
     padding-left: 5px !important;
     padding-right: 5px !important;
+  }
+  .upload-box {
+    width: 100%;
   }
 </style>

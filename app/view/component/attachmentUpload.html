@@ -50,6 +50,8 @@
         accept: '*',
       };
     },
+    created() {
+    },
     methods: {
       async onFileChange(e) {
         const uploadFile = document.querySelector(`.upload-file${this.index}${this.fileType}`);
@@ -125,7 +127,7 @@
         cursor: pointer;
     }
     .upload-container .from-group-lg {
-        background-color: #FFF;
+        background-color: #f6f6f6;
         border: 1px solid #eeeeee;
         border-radius: 10px;
         padding: 0;

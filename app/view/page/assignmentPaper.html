@@ -172,13 +172,14 @@
       // 作业内容
       userAssignment: {},
       assignmentAnswer: [],
-      assignmentUserAnswer: [],
-      assignmentStandardAnswer: [],
       assignmentReview: {},
 
       actionDataForSave: {},
       actionDataForSubmit: {},
 
+      userInfo: {
+        userId: '<$ ctx.userInfo.userId $>'
+      },
       userFileList: {}
     },
     computed: {
@@ -194,7 +195,7 @@
         return `【得分：${scoreText} | 满分：${fullMarkText}】`;
       },
     },
-    watch: {},
+   
     async created() {
       const urlParams = new URLSearchParams(location.search);
       this.assignmentId = urlParams.get('assignmentId');
@@ -290,6 +291,9 @@
         this.assignmentUserAnswer = this.setAssignmentUserAnswerForTemplate();
         this.assignmentStandardAnswer = this.setAssignmentStandardAnswerForTemplate();
         this.assignmentReview = this.setAssignmentReviewForTemplate();
+
+        
+        
         if (this.showStandardAnswer) {
           this.assignmentAnswer = this.assignmentStandardAnswer;
           this.assignmentStatusDesc += ' | 正在查看正确答案';
@@ -297,8 +301,8 @@
           this.assignmentAnswer = this.assignmentUserAnswer;
         }
 
-        // this.userFileList = this.getUserFileList(this.assignmentAnswer);
-        console.log('[setAssignmentConstants] userFileList', this.userFileList, this.assignmentAnswer)
+        this.userFileList = this.getUserFileList(this.assignmentAnswer);
+        console.log('[setAssignmentConstants] userFileList', this.assignmentAnswer)
       },
 
       setAssignmentUserAnswerForTemplate() {
@@ -534,7 +538,7 @@
               const path = `/assignmentMaterial/${that.userInfo.userId}/${that.userAssignment.assignmentId}/`;
               const { data: { status } } = await this.assignmentUploadByStream(file, path, that, index)
               if (status === 'success') {
-                for (const item1 of that.userAssignment.assignmentUserAnswer) {
+                for (const item1 of that.assignmentAnswer) {
                   if (item1.id === id) {
                     item1.user.file[type] = path + file.name;
                   }
