@@ -62,23 +62,21 @@
               class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
               <!--表格行操作按钮-->
               <template v-slot:item.action="{ item }">
-                <span role="button" class="success--text jh-font-size-3 pr-2"
+                <span
+                  role="button" class="success--text font-weight-medium font-size-2 mr-1"
                   @click="doUiAction('jumpToAssignmentPaper', item)">
                   <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>考作业
                 </span>
               </template>
-              <!--表格底部右侧功能按钮-->
-              <template v-slot:footer.prepend>
-                <v-btn icon @click="doUiAction('openTableZebraLineMenu', $event)">
-                  <v-icon>mdi-menu</v-icon>
-                </v-btn>
-                <v-menu top offset-y :close-on-content-click="false" v-model="isTableZebraLineMenuShown" :position-x="tableZebraLineMenuPosition.x" :position-y="tableZebraLineMenuPosition.y">
-                  <v-list>
-                    <v-list-item>
-                      <v-switch v-model="isTableZebraLineShown" hide-details class="ma-0" label="显示斑马纹" dense flat></v-switch>
-                    </v-list-item>
-                  </v-list>
-                </v-menu>
+              <!--没有数据-->
+              <template v-slot:loading>
+                <div class="jh-no-data">数据加载中</div>
+              </template>
+              <template v-slot:no-data>
+                <div class="jh-no-data">暂无数据</div>
+              </template>
+              <template v-slot:no-results>
+                <div class="jh-no-data">暂无数据</div>
               </template>
               <!--表格底部右侧分页-->
               <template v-slot:footer.page-text="pagination">
@@ -144,7 +142,7 @@
           disabled: true,
         }
       ],
-      constantCollection: {
+      constantObj: {
         assignmentStatus: {
           save: '已保存',
           submit: '已提交',
@@ -164,15 +162,13 @@
       currentSceneId: 'scene-fixed-all',
 
       // 表格相关数据
-      isTableZebraLineMenuShown: false,
-      tableZebraLineMenuPosition: { x: null, y: null },
       isTableZebraLineShown: true,
 
       searchInput: null,
       isTableLoading: true,
       tableData: [],
       headers: [
-        { text: '操作', value: 'action', align: 'center', sortable: false, width: 50, class: 'fixed', cellClass: 'fixed' },
+        { text: '操作', value: 'action', align: 'center', sortable: false, width: 80, class: 'fixed', cellClass: 'fixed' },
         { text: "作业ID", value: "assignmentId", width: 50 },
         { text: "作业标题", value: "articleTitle", width: 120 },
         { text: "提交状态", value: "assignmentSubmitStatus", width: 60 },
@@ -224,8 +220,8 @@
         });
         const { rows } = result.data.appData.resultData
         rows.forEach(assignment => {
-          assignment.assignmentSubmitStatus = this.constantCollection.assignmentStatus[assignment.assignmentSubmitStatus]
-          assignment.assignmentReviewStatus = this.constantCollection.assignmentReviewStatus[assignment.assignmentReviewStatus]
+          assignment.assignmentSubmitStatus = this.constantObj.assignmentStatus[assignment.assignmentSubmitStatus]
+          assignment.assignmentReviewStatus = this.constantObj.assignmentReviewStatus[assignment.assignmentReviewStatus]
         })
         this.tableData = rows;
         this.isTableLoading = false;
@@ -237,14 +233,6 @@
         this.serverSearchInput = _.cloneDeep(funObj.form);
       },
       // ---------- <<<<<<<<<<< 场景 uiAction --------
-
-      // ---------- 斑马纹开关 uiAction >>>>>>>>>> --------
-      async openTableZebraLineMenu(funObj) {
-        this.tableZebraLineMenuPosition.x = funObj.x - funObj.offsetX + 10;
-        this.tableZebraLineMenuPosition.y = window.innerHeight - 50;
-        this.isTableZebraLineMenuShown = !this.isTableZebraLineMenuShown;
-      },
-      // ---------- <<<<<<<<<< 斑马纹开关 uiAction --------
 
       // ---------- <<<<<<<<<<< 跳转考作业 --------
       jumpToAssignmentPaper(item) {
