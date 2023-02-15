@@ -75,7 +75,6 @@
                 >
                   <template slot="questionGroup">
                     <v-card v-for="(item, i) in formItem.component.itemList" :key="i" class="mt-2 px-3 py-3" dense outlined>
-
                       <assignment-form-item
                         :form-item="item"
                         :index="i"
@@ -131,11 +130,11 @@
 {% endblock %}
 
 {% block vueScript %}
-<script src="/<$ ctx.app.config.appId $>/public/js/lib/lodash.min.js"></script>
-<link rel="stylesheet" href="/<$ ctx.app.config.appId $>/public/plugins/editor.md/css/editormd.min.css" />
-<script src="/<$ ctx.app.config.appId $>/public/js/lib/jquery.min.js"></script>
-<script src="/<$ ctx.app.config.appId $>/public/plugins/editor.md/editormd.js"></script>
-<script src="/<$ ctx.app.config.appId $>/public/plugins/editor.md/lib/marked.min.js"></script>
+<script src="/<$ ctx.app.config.appId $>/public/lib/lodash/lodash.min.js"></script>
+<script src="/<$ ctx.app.config.appId $>/public/lib/jquery/jquery.min.js"></script>
+<link rel="stylesheet" href="/<$ ctx.app.config.appId $>/public/plugin/editor.md/css/editormd.min.css" />
+<script src="/<$ ctx.app.config.appId $>/public/plugin/editor.md/editormd.js"></script>
+<script src="/<$ ctx.app.config.appId $>/public/plugin/editor.md/lib/marked.min.js"></script>
 <!-- 加载页面组件 >>>>>>>>>>>>> -->
 {% include 'component/attachmentUpload.html' %}
 {% include 'component/assignmentFormItem.html' %}
@@ -591,8 +590,9 @@ new Vue({
 
 <style scoped>
 .jh-v-input .v-input__control .v-messages {
-  display: none!important;
+  display: none !important;
 }
+
 @media (max-width: 600px) {
   .sm-hide {
     display: none;

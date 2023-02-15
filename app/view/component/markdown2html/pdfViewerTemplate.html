@@ -1,4 +1,3 @@
-
 <template id="pdf-viewer">
   <div style="width: 100%; padding: 65% 0;position: relative;">
     <iframe :src="'/<$ ctx.app.config.appId $>/public/pdf/web/viewer.html?file=' + src" frameborder="0" style="position: absolute;width: 100%; height: 100%; top: 0;left: 0"></iframe>
@@ -16,9 +15,8 @@ Vue.component("pdf-viewer", {
       }
     }
   },
-  watch: {
-  },
-  data () {
+  watch: {},
+  data() {
     return {
       appId: '<$ ctx.app.config.appId $>',
       prefix: '<$ ctx.app.config.downloadBasePath $>',
@@ -39,8 +37,7 @@ Vue.component("pdf-viewer", {
     }
   },
 
-  methods: {
-  }
+  methods: {}
 })
 </script>
 <style>

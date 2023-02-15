@@ -3,114 +3,109 @@
 {% block vueTemplate %}
 
 <script type="text/html" id="app-template">
-  <div>
-    <v-app mobile-breakpoint="sm">
-      <jh-menu />
-      <v-main class="mt-15">
-        <!-- 头部内容 >>>>>>>>>>>>> -->
-        <div class="jh-page-second-bar px-8">
-          <v-row>
-            <v-col cols="12" xs="12" sm="12" md="4" xl="3">
-              <div class="pt-3 text-h7 font-weight-bold">作业列表
-                <!-- 帮助页按钮 -->
-                <v-icon
-                  @click="isHelpPageDrawerShown = true" color="success"
-                  small>mdi-help-circle-outline
-                </v-icon>
-              </div>
-              <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
-            </v-col>
-            <!--pc端的搜索条件表单 >>>>>>>> -->
-            <v-col cols="12" xs="12" sm="12" md="8" xl="9">
-              <v-row class="jh-backend-form-container justify-end ma-0 py-4 pt-xs-0">
-                <v-btn
-                  small :outlined="currentSceneId !== scene.id" v-for="(scene, index) in sceneList"
-                  :key="index" :dark="currentSceneId === scene.id"
-                  @click="doUiAction('useScene', scene)" color="grey darken-1" class="mb-2 ml-1">
-                  {{ scene.name }}
-                </v-btn>
-              </v-row>
-            </v-col>
-            <!-- <<<<<<<< pc端的搜索条件表单 -->
-          </v-row>
-        </div>
-        <!-- <<<<<<<<<<<<< 头部内容 -->
-
-        <div class="jh-page-body-container px-8">
-          <!-- 页面内容 >>>>>>>>>>>>> -->
-          <v-card class="rounded-lg">
-            <v-row class="ma-0 py-0 px-4">
-              <v-spacer></v-spacer>
-              <!--搜索-->
-              <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="px-0">
-                <v-text-field v-model="searchInput" color="success" prefix="搜索：" class="jh-v-input" dense filled
-                  single-line></v-text-field>
-              </v-col>
+<div>
+  <v-app mobile-breakpoint="sm">
+    <jh-menu />
+    <v-main class="mt-15">
+      <!-- 头部内容 >>>>>>>>>>>>> -->
+      <div class="jh-page-second-bar px-8">
+        <v-row>
+          <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+            <div class="pt-3 text-h7 font-weight-bold">作业列表
+              <!-- 帮助页按钮 -->
+              <v-icon
+                @click="isHelpPageDrawerShown = true" color="success"
+                small>mdi-help-circle-outline
+              </v-icon>
+            </div>
+            <v-breadcrumbs class="pb-3 pt-0 pl-0" :items="breadcrumbs" divider="-"></v-breadcrumbs>
+          </v-col>
+          <!--pc端的搜索条件表单 >>>>>>>> -->
+          <v-col cols="12" xs="12" sm="12" md="8" xl="9">
+            <v-row class="jh-backend-form-container justify-end ma-0 py-4 pt-xs-0">
+              <v-btn
+                small :outlined="currentSceneId !== scene.id" v-for="(scene, index) in sceneList"
+                :key="index" :dark="currentSceneId === scene.id"
+                @click="doUiAction('useScene', scene)" color="grey darken-1" class="mb-2 ml-1">
+                {{ scene.name }}
+              </v-btn>
             </v-row>
-            <!--表格-->
-            <v-data-table
-              :headers="headers"
-              :items="tableData"
-              :search="searchInput"
-              :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
-              :items-per-page="-1"
-              mobile-breakpoint="0"
-              :loading="isTableLoading"
-              :class="{'zebraLine': isTableZebraLineShown }"
-              checkbox-color="success"
-              fixed-header
-              class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
-              <!--表格行操作按钮-->
-              <template v-slot:item.action="{ item }">
+          </v-col>
+          <!-- <<<<<<<< pc端的搜索条件表单 -->
+        </v-row>
+      </div>
+      <!-- <<<<<<<<<<<<< 头部内容 -->
+
+      <div class="jh-page-body-container px-8">
+        <!-- 页面内容 >>>>>>>>>>>>> -->
+        <v-card class="rounded-lg">
+          <v-row class="ma-0 py-0 px-4">
+            <v-spacer></v-spacer>
+            <!--搜索-->
+            <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="px-0">
+              <v-text-field v-model="searchInput" color="success" prefix="搜索：" class="jh-v-input" dense filled single-line></v-text-field>
+            </v-col>
+          </v-row>
+          <!--表格-->
+          <v-data-table
+            :headers="headers"
+            :items="tableData"
+            :search="searchInput"
+            :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+            :items-per-page="-1"
+            mobile-breakpoint="0"
+            :loading="isTableLoading"
+            :class="{'zebraLine': isTableZebraLineShown }"
+            checkbox-color="success"
+            fixed-header
+            class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+            <!--表格行操作按钮-->
+            <template v-slot:item.action="{ item }">
                 <span
-                  role="button" class="success--text font-weight-medium font-size-2 mr-1"
+                  role="button" class="success--text font-weight-medium font-size-2"
                   @click="doUiAction('jumpToAssignmentPaper', item)">
-                  <v-icon size="14" class="success--text">mdi-note-edit-outline</v-icon>考作业
+                  <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>考作业
                 </span>
-              </template>
-              <!--没有数据-->
-              <template v-slot:loading>
-                <div class="jh-no-data">数据加载中</div>
-              </template>
-              <template v-slot:no-data>
-                <div class="jh-no-data">暂无数据</div>
-              </template>
-              <template v-slot:no-results>
-                <div class="jh-no-data">暂无数据</div>
-              </template>
-              <!--表格底部右侧分页-->
-              <template v-slot:footer.page-text="pagination">
-                <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
-                <span class="ml-1">共{{pagination.itemsLength}}条</span>
-              </template>
-            </v-data-table>
-          </v-card>
-          <!-- <<<<<<<<<<<<< 页面内容 -->
+            </template>
+            <!--没有数据-->
+            <template v-slot:loading>
+              <div class="jh-no-data">数据加载中</div>
+            </template>
+            <template v-slot:no-data>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <template v-slot:no-results>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <!--表格底部右侧分页-->
+            <template v-slot:footer.page-text="pagination">
+              <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+              <span class="ml-1">共{{pagination.itemsLength}}条</span>
+            </template>
+          </v-data-table>
+        </v-card>
+        <!-- <<<<<<<<<<<<< 页面内容 -->
 
-          <!--抽屉遮罩层-->
-          <v-overlay app :value="isHelpPageDrawerShown"></v-overlay>
-
-           <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
-          <v-navigation-drawer v-model="isHelpPageDrawerShown" fixed temporary right width="80%" hide-overlay
-          class="elevation-24">
+        <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+        <v-navigation-drawer v-model="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
           <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc#README.md`" width="100%"
-            height="100%"></iframe>
+                  height="100%"></iframe>
 
           <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn"
-            @click="isHelpPageDrawerShown = false">
+                 @click="isHelpPageDrawerShown = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-navigation-drawer>
         <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
-        </div>
-      </v-main>
-    </v-app>
+      </div>
+    </v-main>
+  </v-app>
 
-    <jh-toast />
-    <jh-mask />
-    <jh-confirm-dialog />
+  <jh-toast />
+  <jh-mask />
+  <jh-confirm-dialog />
 
-  </div>
+</div>
 </script>
 
 <div id="app">
@@ -125,122 +120,122 @@
 <!-- <<<<<<<<<<<<< 加载页面组件 -->
 
 <script type="module">
-  new Vue({
-    el: '#app',
-    template: '#app-template',
-    vueComponent: 'page',
-    vuetify: new Vuetify(),
-    data: {
-      // 面包屑
-      breadcrumbs: [
-        {
-          text: '首页',
-          disabled: true,
-        },
-        {
-          text: '作业列表',
-          disabled: true,
-        }
-      ],
-      constantObj: {
-        assignmentStatus: {
-          save: '已保存',
-          submit: '已提交',
-          new: '新作业',
-        },
-        assignmentReviewStatus: {
-          publish: '已批改',
-        },
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vueComponent: 'page',
+  vuetify: new Vuetify(),
+  data: {
+    // 面包屑
+    breadcrumbs: [
+      {
+        text: '首页',
+        disabled: true,
       },
-      isHelpPageDrawerShown: false,
-
-      sceneList: [
-        { "form": {}, "name": "全部", "id": "scene-fixed-all" },
-        { "form": { "assignmentSubmitStatus": "submit" }, "name": "已提交", "id": "scene-fixed-1" },
-        { "form": { "assignmentReviewStatus": "publish" }, "name": "已批改", "id": "scene-fixed-2" },
-      ],
-      currentSceneId: 'scene-fixed-all',
-
-      // 表格相关数据
-      isTableZebraLineShown: true,
-
-      searchInput: null,
-      isTableLoading: true,
-      tableData: [],
-      headers: [
-        { text: '操作', value: 'action', align: 'center', sortable: false, width: 80, class: 'fixed', cellClass: 'fixed' },
-        { text: "作业ID", value: "assignmentId", width: 50 },
-        { text: "作业标题", value: "articleTitle", width: 120 },
-        { text: "提交状态", value: "assignmentSubmitStatus", width: 60 },
-        { text: "批改状态", value: "assignmentReviewStatus", width: 100 },
-      ],
-    },
-    mounted() {
-      this.doUiAction('getTableData');
-    },
-    methods: {
-      async doUiAction(uiActionId, uiActionData) {
-        switch (uiActionId) {
-          case 'useScene':
-            await this.useScene(uiActionData);
-            await this.getTableData();
-            break;
-          case 'getTableData':
-            await this.getTableData();
-            break;
-          case 'openTableZebraLineMenu':
-            await this.openTableZebraLineMenu(uiActionData);
-            break;
-          case 'jumpToAssignmentPaper':
-            await this.jumpToAssignmentPaper(uiActionData);
-            break;
-          default:
-            console.error("[doUiAction] uiActionId not find", { uiActionId });
-            break;
-        }
-      },
-
-      async getTableData() {
-        this.isTableLoading = true;
-        const backendSearchData = _.pickBy(this.serverSearchInput, (fieldValue, fieldKey) => {
-          if (fieldValue !== null && fieldValue !== '') {
-            return true;
-          }
-        });
-        const result = await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'assignmentManagement',
-              actionId: 'selectItemList',
-              actionData: {},
-              where: backendSearchData,
-              orderBy: [{ column: 'operationAt', order: 'desc' }]
-            }
-          }
-        });
-        const { rows } = result.data.appData.resultData
-        rows.forEach(assignment => {
-          assignment.assignmentSubmitStatus = this.constantObj.assignmentStatus[assignment.assignmentSubmitStatus]
-          assignment.assignmentReviewStatus = this.constantObj.assignmentReviewStatus[assignment.assignmentReviewStatus]
-        })
-        this.tableData = rows;
-        this.isTableLoading = false;
-      },
-
-      // ---------- 场景 uiAction >>>>>>>>>> --------
-      useScene(funObj) {
-        this.currentSceneId = funObj.id;
-        this.serverSearchInput = _.cloneDeep(funObj.form);
-      },
-      // ---------- <<<<<<<<<<< 场景 uiAction --------
-
-      // ---------- <<<<<<<<<<< 跳转考作业 --------
-      jumpToAssignmentPaper(item) {
-        window.location.href = "/<$ ctx.app.config.appId $>/page/assignmentPaper?assignmentId=" + item.assignmentId;
+      {
+        text: '作业列表',
+        disabled: true,
       }
-      // ---------- 跳转考作业 >>>>>>>>>>>> --------
+    ],
+    constantObj: {
+      assignmentStatus: {
+        save: '已保存',
+        submit: '已提交',
+        new: '新作业',
+      },
+      assignmentReviewStatus: {
+        publish: '已批改',
+      },
+    },
+    isHelpPageDrawerShown: false,
+
+    sceneList: [
+      {"form": {}, "name": "全部", "id": "scene-fixed-all"},
+      {"form": {"assignmentSubmitStatus": "submit"}, "name": "已提交", "id": "scene-fixed-1"},
+      {"form": {"assignmentReviewStatus": "publish"}, "name": "已批改", "id": "scene-fixed-2"},
+    ],
+    currentSceneId: 'scene-fixed-all',
+
+    // 表格相关数据
+    isTableZebraLineShown: true,
+
+    searchInput: null,
+    isTableLoading: true,
+    tableData: [],
+    headers: [
+      {text: '操作', value: 'action', sortable: false, width: 90, class: 'fixed', cellClass: 'fixed'},
+      {text: "作业ID", value: "assignmentId"},
+      {text: "作业标题", value: "articleTitle", cellClass: 'noWarp'},
+      {text: "提交状态", value: "assignmentSubmitStatus"},
+      {text: "批改状态", value: "assignmentReviewStatus"},
+    ],
+  },
+  mounted() {
+    this.doUiAction('getTableData');
+  },
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'useScene':
+          await this.useScene(uiActionData);
+          await this.getTableData();
+          break;
+        case 'getTableData':
+          await this.getTableData();
+          break;
+        case 'openTableZebraLineMenu':
+          await this.openTableZebraLineMenu(uiActionData);
+          break;
+        case 'jumpToAssignmentPaper':
+          await this.jumpToAssignmentPaper(uiActionData);
+          break;
+        default:
+          console.error("[doUiAction] uiActionId not find", {uiActionId});
+          break;
+      }
+    },
+
+    async getTableData() {
+      this.isTableLoading = true;
+      const backendSearchData = _.pickBy(this.serverSearchInput, (fieldValue, fieldKey) => {
+        if (fieldValue !== null && fieldValue !== '') {
+          return true;
+        }
+      });
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'assignmentManagement',
+            actionId: 'selectItemList',
+            actionData: {},
+            where: backendSearchData,
+            orderBy: [{column: 'operationAt', order: 'desc'}]
+          }
+        }
+      });
+      const {rows} = result.data.appData.resultData
+      rows.forEach(assignment => {
+        assignment.assignmentSubmitStatus = this.constantObj.assignmentStatus[assignment.assignmentSubmitStatus]
+        assignment.assignmentReviewStatus = this.constantObj.assignmentReviewStatus[assignment.assignmentReviewStatus]
+      })
+      this.tableData = rows;
+      this.isTableLoading = false;
+    },
+
+    // ---------- 场景 uiAction >>>>>>>>>> --------
+    useScene(funObj) {
+      this.currentSceneId = funObj.id;
+      this.serverSearchInput = _.cloneDeep(funObj.form);
+    },
+    // ---------- <<<<<<<<<<< 场景 uiAction --------
+
+    // ---------- <<<<<<<<<<< 跳转考作业 --------
+    jumpToAssignmentPaper(item) {
+      window.location.href = "/<$ ctx.app.config.appId $>/page/assignmentPaper?assignmentId=" + item.assignmentId;
     }
-  })
+    // ---------- 跳转考作业 >>>>>>>>>>>> --------
+  }
+})
 </script>
 
 <style scoped>
