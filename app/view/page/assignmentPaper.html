@@ -312,9 +312,9 @@ new Vue({
 
       if (assignmentUserAnswer) return JSON.parse(assignmentUserAnswer);
 
-      const standardAnswer = JSON.parse(assignmentStandardAnswer);
-      standardAnswer.forEach(question => {
-        question = this._setUserDefaultFormItem(question);
+      let standardAnswer = JSON.parse(assignmentStandardAnswer);
+      standardAnswer = standardAnswer.map(question => {
+        return this.setUserDefaultFormItem(question);
       });
 
       return standardAnswer;
@@ -325,13 +325,13 @@ new Vue({
       const {assignmentStandardAnswer} = this.userAssignment
       if (assignmentStandardAnswer) {
         standardAnswer = JSON.parse(assignmentStandardAnswer);
-        standardAnswer.forEach(question => {
-          question = this._setUserDefaultFormItem(question, true);
+        standardAnswer = standardAnswer.map(question => {
+          return this.setUserDefaultFormItem(question, true);
         });
       }
       return standardAnswer;
     },
-    _setUserDefaultFormItem(item, showAnswer = false) {
+    setUserDefaultFormItem(item, showAnswer = false) {
       const file = {};
       const currentComponent = item.component
       currentComponent.uploadConfig.forEach((type) => {
@@ -357,8 +357,8 @@ new Vue({
         item.user.answer = showAnswer ? currentComponent.answer : ``;
       }
       if (currentComponent.type === "questionGroup") {
-        currentComponent.itemList.forEach((childItem) => {
-          childItem = this._setUserDefaultFormItem(childItem, showAnswer ? true : false);
+        currentComponent.itemList = currentComponent.itemList.map((childItem) => {
+          return this.setUserDefaultFormItem(childItem, showAnswer ? true : false);
         });
       }
       return item;

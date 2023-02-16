@@ -14,7 +14,7 @@ class JhTagEngine {
   };
 
   // 提取articleQueryList
-  async jhArticleQueryTagListHandle() {
+  async jhArticleQueryTagListHandler() {
     this.currentArticleContentSection.forEach((articleItem, index) => {
       articleItem.content = articleItem.content.replace(/\n/g, '___n___')
       const _articleQueryList = articleItem.content.match(/\[jh-article-query.+\[\/jh-article-query\]/g);
@@ -63,8 +63,8 @@ class JhTagEngine {
   };
 
 
-  // jhPdfViewer [jh-pdf-viewer src="/__appId__/upload\articleMaterial\30009\1668869349745_生态高尔夫与高尔夫球场环境认证_戴子云.pdf"/]
-  async jhPdfViewer() {
+  // jhPdfViewerHandler [jh-pdf-viewer src="/__appId__/upload\articleMaterial\30009\1668869349745_生态高尔夫与高尔夫球场环境认证_戴子云.pdf"/]
+  async jhPdfViewerHandler() {
     // 如存在pdf 则把 原有content index 下的 {type: 'text', src: 'xxx'} 替换为 {type: 'text', src: 'xxx'},{type: 'pdfViewer', src: 'xxx'},{type: 'text', src: 'xxx'}
     // content 数组从后往前替换避免 index 变化问题
     const replaceArray = [];
@@ -124,8 +124,8 @@ class JhTagEngine {
         const regExp = this.replaceSpecialChat(item);
         // toggle标签分割内容
         this.splitContent(index, regExp);
-        this.covertContentString2Json();
-        this.extractedToggle(item);
+        this.covertContentStringToJson();
+        this.extractedToggleTag(item);
       })
     } else {
       this.currentArticleContentSection = [{
@@ -133,8 +133,8 @@ class JhTagEngine {
       }]
     }
     // 提取articleQuery
-    this.jhArticleQueryTagListHandle();
-    this.jhPdfViewer();
+    this.jhArticleQueryTagListHandler();
+    this.jhPdfViewerHandler();
     return this.currentArticleContentSection;
   };
 
@@ -149,7 +149,7 @@ class JhTagEngine {
     }
   }
 
-  covertContentString2Json() {
+  covertContentStringToJson() {
     this.currentArticleContentSection = this.currentArticleContentSection.map((content, index) => {
       if (typeof content == 'string') {
         return {
@@ -160,7 +160,7 @@ class JhTagEngine {
     })
   }
 
-  extractedToggle(item) {
+  extractedToggleTag(item) {
     // 通toggle中提取内容
     let toggleDomStr = item.split(']')[0].substring('[jh-toggle '.length);
     let toggleDom = {};

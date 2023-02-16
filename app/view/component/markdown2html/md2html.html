@@ -95,7 +95,7 @@ Vue.component("md2html", {
       const artContentRefs = this.$refs.artContent;
       if (artContentRefs && artContentRefs.length) {
         setTimeout(() => {
-          this.markdownToHTML(artContentRefs);
+          this.parseMarkdownToHTML(artContentRefs);
           this.isContentLoading = false;
         }, 300)
       } else {
@@ -104,7 +104,7 @@ Vue.component("md2html", {
         })
       }
     },
-    markdownToHTML(artContentRefs) {
+    parseMarkdownToHTML(artContentRefs) {
       artContentRefs.forEach(artContent => {
         const contentText = artContent.dataset.content;
         artContent.innerHTML = ArticleMarkdownEngine.md2html(contentText);

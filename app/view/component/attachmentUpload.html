@@ -1,4 +1,4 @@
-<template id="attachmentUpload">
+<template id="attachment-upload">
   <div class="upload-container">
     <form method="post">
       <div class="from-group-lg">
@@ -24,10 +24,10 @@
 </template>
 
 <script>
-Vue.component("attachmentUpload", {
+Vue.component("attachment-upload", {
   vuetify: new Vuetify(),
-  name: 'attachmentUpload',
-  template: '#attachmentUpload',
+  name: 'attachment-upload',
+  template: '#attachment-upload',
   props: {
     value: String | Boolean,
     path: String,
@@ -59,11 +59,11 @@ Vue.component("attachmentUpload", {
       const uploadFile = document.querySelector(`.upload-file${this.index}${this.fileType}`);
       this.files = uploadFile.files;
       this.loading = true;
-      this.listItems = await this.filesMap(this.files);
+      this.listItems = await this.packFileList(this.files);
       this.$emit('change', this.index, this.fileType, uploadFile.files[0]);
       this.loading = false;
     },
-    async filesMap(files) {
+    async packFileList(files) {
       let promises = Array.from(files).map(file => {
         let result = {
           name: file.name,
