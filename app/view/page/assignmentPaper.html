@@ -214,7 +214,7 @@ new Vue({
           break;
         case 'saveUserAssignment':
           await this.packUserAnswerForSave();
-          await this.clearAutoSaveTimer();
+          await this.stopAutoSaveTimer();
           await this.uploadAssignmentFile();
           await this.saveUserAssignment();
           await this.startAutoSaveTimer();
@@ -222,7 +222,7 @@ new Vue({
         case 'submitUserAssignment':
           await this.confirmSubmitUserAssignment();
           await this.packUserAnswerForSubmit();
-          await this.clearAutoSaveTimer();
+          await this.stopAutoSaveTimer();
           await this.submitUserAssignment();
           await this.startAutoSaveTimer();
           await this.getUserAssignment();
@@ -231,7 +231,7 @@ new Vue({
         case 'redoUserAssignment':
           await this.confirmRedoUserAssignment();
           await this.packUserAnswerForRedo();
-          await this.clearAutoSaveTimer();
+          await this.stopAutoSaveTimer();
           await this.redoUserAssignment();
           await this.getUserAssignment();
           await this.setAssignmentConstants();
@@ -282,7 +282,7 @@ new Vue({
         this.startAutoSaveTimer();
       } else {
         this.assignmentStatusDesc = '已提交';
-        this.clearAutoSaveTimer();
+        this.stopAutoSaveTimer();
       }
 
       this.assignmentTitle = (articleTitle) ? articleTitle : '无题';
@@ -392,7 +392,7 @@ new Vue({
       console.log('timer started');
       this.autoSaveTimeOut = setTimeout(this.autoSaveUserAssignment, this.autoSaveInterval);
     },
-    async clearAutoSaveTimer() {
+    async stopAutoSaveTimer() {
       clearTimeout(this.autoSaveTimeOut);
     },
     async autoSaveUserAssignment() {
